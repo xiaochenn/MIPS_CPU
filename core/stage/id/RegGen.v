@@ -35,7 +35,7 @@ module RegGen(
       // arithmetic & logic (immediate)
       `OP_ANDI,
       // memory accessing
-      `OP_SB, `OP_SW,
+      `OP_SB, `OP_SW, `OP_SH,
       // r-type
       `OP_SPECIAL: begin
         reg_read_en_1 <= 1;
