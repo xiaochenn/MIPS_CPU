@@ -29,7 +29,7 @@ module OperandGen(
       // immediate
       `OP_ADDIU, `OP_LUI,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW, `OP_ANDI,`OP_ORI,`OP_LH: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW, `OP_ANDI,`OP_ORI,`OP_LH, `OP_SH: begin
         operand_1 <= reg_data_1;
       end
       `OP_SPECIAL: begin
@@ -53,7 +53,7 @@ module OperandGen(
       // arithmetic & logic (immediate)
       `OP_ADDIU,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW,`OP_LH: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW,`OP_LH, `OP_SH: begin
         operand_2 <= sign_ext_imm;
       end
       `OP_ANDI,`OP_ORI: begin
