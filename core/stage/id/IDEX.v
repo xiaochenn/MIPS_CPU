@@ -20,6 +20,8 @@ module IDEX(
   input                   reg_write_en_in,
   input   [`REG_ADDR_BUS] reg_write_addr_in,
   input   [`ADDR_BUS]     current_pc_addr_in,
+  input                   cp_write_en_in,
+  input   [`REG_ADDR_BUS] cp_write_addr_in,
   // output to EX stage
   output  [`FUNCT_BUS]    funct_out,
   output  [`SHAMT_BUS]    shamt_out,
@@ -32,7 +34,9 @@ module IDEX(
   output  [`DATA_BUS]     mem_write_data_out,
   output                  reg_write_en_out,
   output  [`REG_ADDR_BUS] reg_write_addr_out,
-  output  [`ADDR_BUS]     current_pc_addr_out
+  output  [`ADDR_BUS]     current_pc_addr_out,
+  output                  cp_write_en_out,
+  output  [`REG_ADDR_BUS] cp_write_addr_out
 );
 
   PipelineDeliver #(`FUNCT_BUS_WIDTH) ff_funct(
@@ -105,6 +109,18 @@ module IDEX(
     clk, rst,
     stall_current_stage, stall_next_stage,
     current_pc_addr_in, current_pc_addr_out
+  );
+
+  PipelineDeliver #(1) ff_cp_write_en(
+    clk, rst,
+    stall_current_stage, stall_next_stage,
+    cp_write_en_in, cp_write_en_out
+  );
+
+  PipelineDeliver #(`REG_ADDR_BUS_WIDTH) ff_cp_write_addr(
+    clk, rst,
+    stall_current_stage, stall_next_stage,
+    cp_write_addr_in, cp_write_addr_out
   );
 
 endmodule // IDEX

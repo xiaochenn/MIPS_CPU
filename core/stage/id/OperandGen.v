@@ -9,8 +9,11 @@ module OperandGen(
   input       [`INST_OP_BUS]    op,
   input       [`FUNCT_BUS]      funct,
   input       [`HALF_DATA_BUS]  imm,
+  input                         inst_mfc0,
+  input                         inst_mtc0,
   input       [`DATA_BUS]       reg_data_1,
   input       [`DATA_BUS]       reg_data_2,
+  input       [`DATA_BUS]       cp_read_data,
   output  reg [`DATA_BUS]       operand_1,
   output  reg [`DATA_BUS]       operand_2
 );
@@ -38,6 +41,16 @@ module OperandGen(
       `OP_JAL: begin
         operand_1 <= link_addr;
       end
+      `OP_PRIVILEGE: begin
+        if (inst_mfc0) 
+        begin
+          operand_1 <= cp_read_data;
+        end
+        else 
+        begin
+          operand_1 <= 0;
+        end
+      end
       default: begin
         operand_1 <= 0;
       end
@@ -61,6 +74,16 @@ module OperandGen(
       end
       `OP_SPECIAL: begin
         operand_2 <= reg_data_2;
+      end
+      `OP_PRIVILEGE: begin
+        if (inst_mtc0)
+        begin
+          operand_2 <= reg_data_2;
+        end
+        else
+        begin
+          operand_2 <= 0;
+        end
       end
       default: begin
         operand_2 <= 0;

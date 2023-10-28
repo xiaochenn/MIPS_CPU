@@ -13,6 +13,8 @@ module MEM(
   input       [`DATA_BUS]     result_in,
   input                       reg_write_en_in,
   input       [`REG_ADDR_BUS] reg_write_addr_in,
+  input                       cp_write_en_in,
+  input       [`REG_ADDR_BUS] cp_write_addr_in,
   input       [`ADDR_BUS]     current_pc_addr_in,
   // RAM control signals
   output                      ram_en,
@@ -29,6 +31,8 @@ module MEM(
   output      [`DATA_BUS]     result_out,
   output                      reg_write_en_out,
   output      [`REG_ADDR_BUS] reg_write_addr_out,
+  output                      cp_write_en_out,
+  output      [`REG_ADDR_BUS] cp_write_addr_out,
   output      [`ADDR_BUS]     current_pc_addr_out
 );
 
@@ -45,6 +49,8 @@ module MEM(
   assign result_out = result_in;
   assign reg_write_en_out = reg_write_en_in;
   assign reg_write_addr_out = reg_write_addr_in;
+  assign cp_write_en_out = cp_write_en_in;
+  assign cp_write_addr_out = cp_write_addr_in;
   assign current_pc_addr_out = current_pc_addr_in;
 
   wire[`ADDR_BUS] address = result_in;

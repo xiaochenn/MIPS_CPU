@@ -79,9 +79,12 @@ module Core(
   wire idex_mem_read_flag, idex_mem_write_flag, idex_mem_sign_ext_flag;
   wire[`MEM_SEL_BUS] id_mem_sel, idex_mem_sel;
   wire[`DATA_BUS] id_mem_write_data, idex_mem_write_data;
-  wire id_reg_write_en, idex_reg_write_en;
-  wire[`REG_ADDR_BUS] id_reg_write_addr, idex_reg_write_addr;
+  wire id_reg_write_en, idex_reg_write_en,idex_cp_write_en;
+  wire[`REG_ADDR_BUS] id_reg_write_addr, idex_reg_write_addr,idex_cp_write_addr;
   wire[`ADDR_BUS] id_current_pc_addr, idex_current_pc_addr;
+  wire id_cp_read_en, id_cp_write_en;
+  wire [`REG_ADDR_BUS] id_cp_read_addr, id_cp_write_addr;
+  wire [`DATA_BUS] id_cp_read_data;
 
   ID id_stage(
     .addr               (ifid_addr),
@@ -96,6 +99,10 @@ module Core(
     .reg_read_en_2      (id_reg_read_en_2),
     .reg_addr_2         (id_reg_addr_2),
     .reg_data_2         (id_reg_data_2),
+
+    .cp_read_en         (id_cp_read_en),
+    .cp_read_addr       (id_cp_read_addr),
+    .cp_read_data       (id_cp_read_data),
 
     .stall_request      (id_stall_request),
 
@@ -116,7 +123,10 @@ module Core(
     .reg_write_en       (id_reg_write_en),
     .reg_write_addr     (id_reg_write_addr),
 
-    .current_pc_addr    (id_current_pc_addr)
+    .current_pc_addr    (id_current_pc_addr),
+
+    .cp_write_en        (id_cp_write_en),
+    .cp_write_addr      (id_cp_write_addr)
   );
 
   IDEX idex(
@@ -137,6 +147,8 @@ module Core(
     .reg_write_en_in        (id_reg_write_en),
     .reg_write_addr_in      (id_reg_write_addr),
     .current_pc_addr_in     (id_current_pc_addr),
+    .cp_write_en_in         (id_cp_write_en),
+    .cp_write_addr_in       (id_cp_write_addr),
 
     .funct_out              (idex_funct),
     .shamt_out              (idex_shamt),
@@ -149,7 +161,9 @@ module Core(
     .mem_write_data_out     (idex_mem_write_data),
     .reg_write_en_out       (idex_reg_write_en),
     .reg_write_addr_out     (idex_reg_write_addr),
-    .current_pc_addr_out    (idex_current_pc_addr)
+    .current_pc_addr_out    (idex_current_pc_addr),
+    .cp_write_en_out        (idex_cp_write_en),
+    .cp_write_addr_out      (idex_cp_write_addr)
   );
 
 
@@ -160,8 +174,8 @@ module Core(
   wire[`MEM_SEL_BUS] ex_mem_sel, exmem_mem_sel;
   wire[`DATA_BUS] ex_mem_write_data, ex_result;
   wire[`DATA_BUS] exmem_mem_write_data, exmem_result;
-  wire ex_reg_write_en, exmem_reg_write_en;
-  wire[`REG_ADDR_BUS] ex_reg_write_addr, exmem_reg_write_addr;
+  wire ex_reg_write_en, exmem_reg_write_en,ex_cp_write_en,exmem_cp_write_en;
+  wire[`REG_ADDR_BUS] ex_reg_write_addr, exmem_reg_write_addr,ex_cp_write_addr,exmem_cp_write_addr;
   wire[`ADDR_BUS] ex_current_pc_addr, exmem_current_pc_addr;
 
   EX ex_stage(
@@ -177,6 +191,8 @@ module Core(
     .reg_write_en_in        (idex_reg_write_en),
     .reg_write_addr_in      (idex_reg_write_addr),
     .current_pc_addr_in     (idex_current_pc_addr),
+    .cp_write_en_in         (idex_cp_write_en),
+    .cp_write_addr_in       (idex_cp_write_addr),
 
     .ex_load_flag           (ex_ex_load_flag),
 
@@ -189,6 +205,8 @@ module Core(
     .result                 (ex_result),
     .reg_write_en_out       (ex_reg_write_en),
     .reg_write_addr_out     (ex_reg_write_addr),
+    .cp_write_en_out        (ex_cp_write_en),
+    .cp_write_addr_out      (ex_cp_write_addr),
     .current_pc_addr_out    (ex_current_pc_addr)
   );
 
@@ -207,6 +225,8 @@ module Core(
     .reg_write_en_in        (ex_reg_write_en),
     .reg_write_addr_in      (ex_reg_write_addr),
     .current_pc_addr_in     (ex_current_pc_addr),
+    .cp_write_en_in         (ex_cp_write_en),
+    .cp_write_addr_in       (ex_cp_write_addr),
 
     .mem_read_flag_out      (exmem_mem_read_flag),
     .mem_write_flag_out     (exmem_mem_write_flag),
@@ -216,7 +236,9 @@ module Core(
     .result_out             (exmem_result),
     .reg_write_en_out       (exmem_reg_write_en),
     .reg_write_addr_out     (exmem_reg_write_addr),
-    .current_pc_addr_out    (exmem_current_pc_addr)
+    .current_pc_addr_out    (exmem_current_pc_addr),
+    .cp_write_en_out        (exmem_cp_write_en),
+    .cp_write_addr_out      (exmem_cp_write_addr)
   );
 
 
@@ -226,8 +248,8 @@ module Core(
   wire memwb_mem_read_flag, memwb_mem_write_flag, memwb_mem_sign_ext_flag;
   wire[`MEM_SEL_BUS] mem_mem_sel, memwb_mem_sel;
   wire[`DATA_BUS] mem_result, memwb_result, memwb_ram_read_data;
-  wire mem_reg_write_en, memwb_reg_write_en;
-  wire[`REG_ADDR_BUS] mem_reg_write_addr, memwb_reg_write_addr;
+  wire mem_reg_write_en, memwb_reg_write_en,mem_cp_write_en,memwb_cp_write_en;
+  wire[`REG_ADDR_BUS] mem_reg_write_addr, memwb_reg_write_addr,mem_cp_write_addr,memwb_cp_write_addr;
   wire[`ADDR_BUS] mem_current_pc_addr, memwb_current_pc_addr;
 
   MEM mem_stage(
@@ -240,6 +262,8 @@ module Core(
     .result_in              (exmem_result),
     .reg_write_en_in        (exmem_reg_write_en),
     .reg_write_addr_in      (exmem_reg_write_addr),
+    .cp_write_en_in         (exmem_cp_write_en),
+    .cp_write_addr_in       (exmem_cp_write_addr),
     .current_pc_addr_in     (exmem_current_pc_addr),
 
     .ram_en                 (ram_en),
@@ -256,6 +280,8 @@ module Core(
     .result_out             (mem_result),
     .reg_write_en_out       (mem_reg_write_en),
     .reg_write_addr_out     (mem_reg_write_addr),
+    .cp_write_en_out        (mem_cp_write_en),
+    .cp_write_addr_out      (mem_cp_write_addr),
     .current_pc_addr_out    (mem_current_pc_addr)
   );
 
@@ -274,6 +300,8 @@ module Core(
     .result_in              (mem_result),
     .reg_write_en_in        (mem_reg_write_en),
     .reg_write_addr_in      (mem_reg_write_addr),
+    .cp_write_en_in         (mem_cp_write_en),
+    .cp_write_addr_in       (mem_cp_write_addr),
     .current_pc_addr_in     (mem_current_pc_addr),
 
     .ram_read_data_out      (memwb_ram_read_data),
@@ -285,14 +313,16 @@ module Core(
     .result_out             (memwb_result),
     .reg_write_en_out       (memwb_reg_write_en),
     .reg_write_addr_out     (memwb_reg_write_addr),
+    .cp_write_en_out        (memwb_cp_write_en),
+    .cp_write_addr_out      (memwb_cp_write_addr),
     .current_pc_addr_out    (memwb_current_pc_addr)
   );
 
 
   // WB stage
   wire[`DATA_BUS] wb_result;
-  wire wb_reg_write_en;
-  wire[`REG_ADDR_BUS] wb_reg_write_addr;
+  wire wb_reg_write_en,wb_cp_write_en;
+  wire[`REG_ADDR_BUS] wb_reg_write_addr,wb_cp_write_addr;
 
   assign debug_reg_write_addr = wb_reg_write_addr;
   assign debug_reg_write_data = wb_result;
@@ -308,11 +338,15 @@ module Core(
     .result_in          (memwb_result),
     .reg_write_en_in    (memwb_reg_write_en),
     .reg_write_addr_in  (memwb_reg_write_addr),
+    .cp_write_en_in     (memwb_cp_write_en),
+    .cp_write_addr_in   (memwb_cp_write_addr),
     .current_pc_addr_in (memwb_current_pc_addr),
 
     .result_out         (wb_result),
     .reg_write_en_out   (wb_reg_write_en),
     .reg_write_addr_out (wb_reg_write_addr),
+    .cp_write_en_out    (wb_cp_write_en),
+    .cp_write_addr_out  (wb_cp_write_addr),
 
     .debug_reg_write_en (debug_reg_write_en),
     .debug_pc_addr_out  (debug_pc_addr)
@@ -338,6 +372,22 @@ module Core(
     .write_addr   (wb_reg_write_addr),
     .write_data   (wb_result)
   );
+
+  wire[`DATA_BUS] cp0_read_data;
+
+  CP0_reg cp0(
+    .clk          (clk),
+    .rst          (rst),
+
+    .read_en_i      (id_cp_read_en),
+    .read_addr_i    (id_cp_read_addr),
+    .read_data_o    (cp0_read_data),
+
+    .write_en_i     (wb_cp_write_en),
+    .write_addr_i   (wb_cp_write_addr),
+    .write_data_i   (wb_result)
+  );
+
 
   RegReadProxy reg_read_proxy(
     .read_en_1                (id_reg_read_en_1),
@@ -365,6 +415,20 @@ module Core(
     .read_data_2              (id_reg_data_2)
   );
 
+  CP0ReadProxy cp0_read_proxy(
+    .read_addr_i              (id_cp_read_addr),
+    .read_data_i              (cp0_read_data),
+
+    .ex_cp_write_en           (ex_cp_write_en),
+    .ex_cp_write_addr         (ex_cp_write_addr),
+    .ex_cp_write_data         (ex_result),
+
+    .mem_cp_write_en          (mem_cp_write_en),
+    .mem_cp_write_addr        (mem_cp_write_addr),
+    .mem_cp_write_data        (mem_cp_write_data),
+
+    .cp_read_data_o           (id_cp_read_data)
+  );
 
   // pipeline control
   PipelineController pipeline_controller(

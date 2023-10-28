@@ -20,6 +20,10 @@ module ID(
   output                  reg_read_en_2,
   output  [`REG_ADDR_BUS] reg_addr_2,
   input   [`DATA_BUS]     reg_data_2,
+  // cp0 channel
+  output                      cp_read_en,
+  output  [`REG_ADDR_BUS]     cp_read_addr,
+  input   [`DATA_BUS]         cp_read_data,
   // stall request
   output                  stall_request,
   // to IF stage
@@ -39,7 +43,10 @@ module ID(
   // to WB stage (write back to regfile)
   output                  reg_write_en,
   output  [`REG_ADDR_BUS] reg_write_addr,
-  output  [`ADDR_BUS]     current_pc_addr
+  output  [`ADDR_BUS]     current_pc_addr,
+  // CP0 channel
+  output                      cp_write_en,
+  output  [`REG_ADDR_BUS]     cp_write_addr
 );
 
   // extract information from instruction
@@ -50,11 +57,13 @@ module ID(
   wire[`SHAMT_BUS]      inst_shamt  = inst[`SEG_SHAMT];
   wire[`FUNCT_BUS]      inst_funct  = inst[`SEG_FUNCT];
   wire[`HALF_DATA_BUS]  inst_imm    = inst[`SEG_IMM];
-
+  wire inst_mfc0,inst_mtc0;
   // generate output signals
   assign shamt = inst_shamt;
   assign stall_request = load_related_1 || load_related_2;
   assign current_pc_addr = addr;
+  assign inst_mfc0 = (inst[31:21] == 11'b01000000000 && inst[10:0] == 11'b00000000000); //mfc0指令
+  assign inst_mtc0 = (inst[31:21] == 11'b01000000100 && inst[10:0] == 11'b00000000000); //mtc0指令
 
   // generate address of registers
   RegGen reg_gen(
@@ -62,12 +71,18 @@ module ID(
     .rs             (inst_rs),
     .rt             (inst_rt),
     .rd             (inst_rd),
+    .inst_mfc0      (inst_mfc0),
+    .inst_mtc0      (inst_mtc0),
     .reg_read_en_1  (reg_read_en_1),
     .reg_read_en_2  (reg_read_en_2),
     .reg_addr_1     (reg_addr_1),
     .reg_addr_2     (reg_addr_2),
     .reg_write_en   (reg_write_en),
-    .reg_write_addr (reg_write_addr)
+    .reg_write_addr (reg_write_addr),
+    .cp_read_en     (cp_read_en),
+    .cp_read_addr   (cp_read_addr),
+    .cp_write_en    (cp_write_en),
+    .cp_write_addr  (cp_write_addr)
   );
 
   // generate FUNCT signal
@@ -83,8 +98,11 @@ module ID(
     .op         (inst_op),
     .funct      (inst_funct),
     .imm        (inst_imm),
+    .inst_mfc0  (inst_mfc0),
+    .inst_mtc0  (inst_mtc0),
     .reg_data_1 (reg_data_1),
     .reg_data_2 (reg_data_2),
+    .cp_read_data (cp_read_data),
     .operand_1  (operand_1),
     .operand_2  (operand_2)
   );
@@ -111,5 +129,7 @@ module ID(
     .mem_sel            (mem_sel),
     .mem_write_data     (mem_write_data)
   );
+
+
 
 endmodule // ID

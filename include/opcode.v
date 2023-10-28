@@ -29,4 +29,7 @@
 `define OP_SW         6'b101011
 `define OP_LH         6'b100001
 
+// privilege
+`define OP_PRIVILEGE       6'b010000
+
 `endif  // TINYMIPS_OPCODE_V_

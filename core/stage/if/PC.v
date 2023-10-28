@@ -8,9 +8,13 @@ module PC(
   input                       rst,
   // stall signal
   input                       stall_pc,
+  // flush signal
+  input                       flush,
   // branch control
   input                       branch_flag,
   input       [`ADDR_BUS]     branch_addr,
+  // exception control
+  input       [`ADDR_BUS]     exc_pc,
   // to ID stage
   output  reg [`ADDR_BUS]     pc,
   // ROM control

@@ -17,6 +17,8 @@ module EX(
   input                       reg_write_en_in,
   input       [`REG_ADDR_BUS] reg_write_addr_in,
   input       [`ADDR_BUS]     current_pc_addr_in,
+  input                       cp_write_en_in,
+  input       [`REG_ADDR_BUS] cp_write_addr_in,
   // to ID stage (solve data hazards)
   output                      ex_load_flag,
   // to MEM stage
@@ -29,6 +31,8 @@ module EX(
   output  reg [`DATA_BUS]     result,
   output                      reg_write_en_out,
   output      [`REG_ADDR_BUS] reg_write_addr_out,
+  output                      cp_write_en_out,
+  output      [`REG_ADDR_BUS] cp_write_addr_out,
   output      [`ADDR_BUS]     current_pc_addr_out
 );
 
@@ -41,9 +45,11 @@ module EX(
   assign mem_sel_out = mem_sel_in;
   assign mem_write_data_out = mem_write_data_in;
   // to WB stage
-  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in;
+  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in && !cp_write_en_in;
   assign reg_write_addr_out = reg_write_addr_in;
   assign current_pc_addr_out = current_pc_addr_in;
+  assign cp_write_en_out = cp_write_addr_in && !mem_write_flag_in && !reg_write_en_in;
+  assign cp_write_addr_out = cp_write_addr_in;
 
   // calculate the complement of operand_2
   wire[`DATA_BUS] operand_2_mux =
