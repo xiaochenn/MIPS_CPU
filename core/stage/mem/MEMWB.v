@@ -5,6 +5,7 @@
 module MEMWB(
   input                   clk,
   input                   rst,
+  input                   flush,
   input                   stall_current_stage,
   input                   stall_next_stage,
   // RAM control signals
@@ -39,67 +40,67 @@ module MEMWB(
 );
 
   PipelineDeliver #(`DATA_BUS_WIDTH) ff_ram_read_data(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     ram_read_data_in, ram_read_data_out
   );
 
   PipelineDeliver #(1) ff_mem_read_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_read_flag_in, mem_read_flag_out
   );
 
   PipelineDeliver #(1) ff_mem_write_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_write_flag_in, mem_write_flag_out
   );
 
   PipelineDeliver #(1) ff_mem_sign_ext_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_sign_ext_flag_in, mem_sign_ext_flag_out
   );
 
   PipelineDeliver #(`MEM_SEL_BUS_WIDTH) ff_mem_sel(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_sel_in, mem_sel_out
   );
 
   PipelineDeliver #(`DATA_BUS_WIDTH) ff_result(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     result_in, result_out
   );
 
   PipelineDeliver #(1) ff_reg_write_en(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     reg_write_en_in, reg_write_en_out
   );
 
   PipelineDeliver #(`REG_ADDR_BUS_WIDTH) ff_reg_write_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     reg_write_addr_in, reg_write_addr_out
   );
 
   PipelineDeliver #(`ADDR_BUS_WIDTH) ff_current_pc_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     current_pc_addr_in, current_pc_addr_out
   );
 
   PipelineDeliver #(1) ff_cp_write_en(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     cp_write_en_in, cp_write_en_out
   );
   
   PipelineDeliver #(`REG_ADDR_BUS_WIDTH) ff_cp_write_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     cp_write_addr_in, cp_write_addr_out
   );

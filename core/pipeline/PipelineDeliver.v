@@ -5,20 +5,29 @@ module PipelineDeliver #(
 ) (
   input                     clk,
   input                     rst,
+  input                     flush,
   input                     stall_current_stage,
   input                     stall_next_stage,
   input       [WIDTH - 1:0] in,
   output  reg [WIDTH - 1:0] out
 );
 
-  always @(posedge clk) begin
-    if (rst) begin
+  always @(posedge clk) 
+  begin
+    if (rst) 
+    begin
       out <= 0;
     end
-    else if (stall_current_stage && !stall_next_stage) begin
+    else if (flush)
+    begin
       out <= 0;
     end
-    else if (!stall_current_stage) begin
+    else if (stall_current_stage && !stall_next_stage) 
+    begin
+      out <= 0;
+    end
+    else if (!stall_current_stage) 
+    begin
       out <= in;
     end
   end

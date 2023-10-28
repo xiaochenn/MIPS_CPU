@@ -9,6 +9,8 @@ module ID(
   // from IF stage (PC)
   input   [`ADDR_BUS]     addr,
   input   [`INST_BUS]     inst,
+  // delay slot
+  input                   delayslot_flag_in,
   // load related signals
   input                   load_related_1,
   input                   load_related_2,
@@ -45,8 +47,14 @@ module ID(
   output  [`REG_ADDR_BUS] reg_write_addr,
   output  [`ADDR_BUS]     current_pc_addr,
   // CP0 channel
-  output                      cp_write_en,
-  output  [`REG_ADDR_BUS]     cp_write_addr
+  output                  cp_write_en,
+  output  [`REG_ADDR_BUS] cp_write_addr,
+  // exception
+  output                  eret_flag,
+  output                  syscall_flag,
+  output                  break_flag,
+  output                  next_inst_delayslot_flag,
+  output                  delayslot_flag_out
 );
 
   // extract information from instruction
@@ -64,6 +72,7 @@ module ID(
   assign current_pc_addr = addr;
   assign inst_mfc0 = (inst[31:21] == 11'b01000000000 && inst[10:0] == 11'b00000000000); //mfc0指令
   assign inst_mtc0 = (inst[31:21] == 11'b01000000100 && inst[10:0] == 11'b00000000000); //mtc0指令
+  assign delayslot_flag_out = delayslot_flag_in;
 
   // generate address of registers
   RegGen reg_gen(
@@ -116,7 +125,8 @@ module ID(
     .reg_data_1   (reg_data_1),
     .reg_data_2   (reg_data_2),
     .branch_flag  (branch_flag),
-    .branch_addr  (branch_addr)
+    .branch_addr  (branch_addr),
+    .next_inst_delayslot_flag (next_inst_delayslot_flag)
   );
 
   // generate memory accessing signals
@@ -128,6 +138,15 @@ module ID(
     .mem_sign_ext_flag  (mem_sign_ext_flag),
     .mem_sel            (mem_sel),
     .mem_write_data     (mem_write_data)
+  );
+
+  ExceptionGen exception_gen(
+    .inst         (inst),
+    .inst_op      (inst_op),
+    .inst_funct   (inst_funct),
+    .eret_flag    (eret_flag),
+    .syscall_flag (syscall_flag),
+    .break_flag   (break_flag)
   );
 
 

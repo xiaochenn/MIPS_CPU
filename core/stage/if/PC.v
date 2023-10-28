@@ -32,7 +32,10 @@ module PC(
 
   // generate value of next PC
   always @(*) begin
-    if (!stall_pc) begin
+    if (flush) begin
+      next_pc <= exc_pc;
+    end
+    else if (!stall_pc) begin
       if (branch_flag) begin
         next_pc <= branch_addr;
       end

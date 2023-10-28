@@ -9,7 +9,7 @@
 
 // jump
 `define FUNCT_JALR      6'b001001
-`define FUNCT_JR          6'b001000
+`define FUNCT_JR        6'b001000
 
 // arithmetic
 `define FUNCT_ADDU      6'b100001
@@ -25,9 +25,14 @@
 `define FUNCT_SLT       6'b101010
 `define FUNCT_SLTU      6'b101011
 
+// Exception
+`define FUNCT_SYSCALL   6'b001100
+`define FUNCT_BREAK     6'b001101
+
 // NOTE: improper usage
 // it's NOP because '111111' is meaningless in current MIPS ISA
 // but we can't make sure it won't be used in a future version
 `define FUNCT_NOP       6'b111111
+
 
 `endif  // TINYMIPS_FUNCT_V_

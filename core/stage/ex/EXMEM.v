@@ -5,6 +5,7 @@
 module EXMEM(
   input                   clk,
   input                   rst,
+  input                   flush,
   input                   stall_current_stage,
   input                   stall_next_stage,
   // input from EX stage
@@ -19,6 +20,12 @@ module EXMEM(
   input   [`ADDR_BUS]     current_pc_addr_in,
   input                   cp_write_en_in,
   input   [`REG_ADDR_BUS] cp_write_addr_in,
+
+  input                   eret_flag_in,
+  input                   syscall_flag_in,
+  input                   break_flag_in,
+  input                   overflow_flag_in,
+  input                   delayslot_flag_in,
   // output to MEM stage
   output                  mem_read_flag_out,
   output                  mem_write_flag_out,
@@ -31,73 +38,109 @@ module EXMEM(
   output  [`REG_ADDR_BUS] reg_write_addr_out,
   output                  cp_write_en_out,
   output  [`REG_ADDR_BUS] cp_write_addr_out,
-  output  [`ADDR_BUS]     current_pc_addr_out
+  output  [`ADDR_BUS]     current_pc_addr_out,
+
+  output                  eret_flag_out,
+  output                  syscall_flag_out,
+  output                  break_flag_out,
+  output                  overflow_flag_out,
+  output                  delayslot_flag_out
 );
 
   PipelineDeliver #(1) ff_mem_read_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_read_flag_in, mem_read_flag_out
   );
 
   PipelineDeliver #(1) ff_mem_write_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_write_flag_in, mem_write_flag_out
   );
 
   PipelineDeliver #(1) ff_mem_sign_ext_flag(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_sign_ext_flag_in, mem_sign_ext_flag_out
   );
 
   PipelineDeliver #(`MEM_SEL_BUS_WIDTH) ff_mem_sel(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_sel_in, mem_sel_out
   );
 
   PipelineDeliver #(`DATA_BUS_WIDTH) ff_mem_write_data(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     mem_write_data_in, mem_write_data_out
   );
 
   PipelineDeliver #(`DATA_BUS_WIDTH) ff_result(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     result_in, result_out
   );
 
   PipelineDeliver #(1) ff_reg_write_en(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     reg_write_en_in, reg_write_en_out
   );
 
   PipelineDeliver #(`REG_ADDR_BUS_WIDTH) ff_reg_write_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     reg_write_addr_in, reg_write_addr_out
   );
 
   PipelineDeliver #(`ADDR_BUS_WIDTH) ff_current_pc_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     current_pc_addr_in, current_pc_addr_out
   );
 
   PipelineDeliver #(1) ff_cp_write_en(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     cp_write_en_in, cp_write_en_out
   );
 
   PipelineDeliver #(`REG_ADDR_BUS_WIDTH) ff_cp_write_addr(
-    clk, rst,
+    clk, rst,flush,
     stall_current_stage, stall_next_stage,
     cp_write_addr_in, cp_write_addr_out
+  );
+
+  PipelineDeliver #(1) ff_eret_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    eret_flag_in, eret_flag_out
+  );
+
+  PipelineDeliver #(1) ff_syscal_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    syscall_flag_in, syscall_flag_out
+  );
+
+  PipelineDeliver #(1) ff_break_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    break_flag_in, break_flag_out
+  );
+
+  PipelineDeliver #(1) ff_overflow_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    overflow_flag_in, overflow_flag_out
+  );
+
+  PipelineDeliver #(1) ff_delayslot_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    delayslot_flag_in, delayslot_flag_out
   );
 
 endmodule // EXMEM

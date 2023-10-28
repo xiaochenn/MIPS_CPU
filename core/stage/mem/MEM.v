@@ -9,6 +9,12 @@ module MEM(
   input                       mem_sign_ext_flag_in,
   input       [`MEM_SEL_BUS]  mem_sel_in,
   input       [`DATA_BUS]     mem_write_data,
+  // exception
+  input                       eret_flag_in,
+  input                       syscall_flag_in,
+  input                       break_flag_in,
+  input                       overflow_flag_in,
+  input                       delayslot_flag_in,
   // from EX stage
   input       [`DATA_BUS]     result_in,
   input                       reg_write_en_in,
@@ -33,7 +39,14 @@ module MEM(
   output      [`REG_ADDR_BUS] reg_write_addr_out,
   output                      cp_write_en_out,
   output      [`REG_ADDR_BUS] cp_write_addr_out,
-  output      [`ADDR_BUS]     current_pc_addr_out
+  output      [`ADDR_BUS]     current_pc_addr_out,
+  output                      eret_flag_out,
+  output                      syscall_flag_out,
+  output                      break_flag_out,
+  output                      overflow_flag_out,
+  output                      delayslot_flag_out,
+  output     reg              address_read_error_flag,
+  output     reg              address_write_error_flag
 );
 
   // internal ram_write_sel control signal
@@ -52,6 +65,12 @@ module MEM(
   assign cp_write_en_out = cp_write_en_in;
   assign cp_write_addr_out = cp_write_addr_in;
   assign current_pc_addr_out = current_pc_addr_in;
+  //exception
+  assign eret_flag_out = eret_flag_in;
+  assign syscall_flag_out = syscall_flag_in;
+  assign break_flag_out = break_flag_in;
+  assign overflow_flag_out = overflow_flag_in;
+  assign delayslot_flag_out = delayslot_flag_in;
 
   wire[`ADDR_BUS] address = result_in;
 
@@ -117,5 +136,62 @@ module MEM(
       ram_write_data <= 0;
     end
   end
+
+  // generate address_write_error_flag signal
+  always @(*) 
+  begin
+    if (mem_write_flag_in) 
+    begin
+      case(mem_sel_in)
+        4'b1111: 
+        begin
+          if (address[1:0] != 2'b00) 
+          begin      // word
+            address_write_error_flag <= 1;
+          end
+          else 
+          begin
+            address_write_error_flag <= 0;
+          end
+        end
+        default: 
+        begin
+          address_write_error_flag <= 0;
+        end
+      endcase
+    end
+    else 
+    begin
+      address_write_error_flag <= 0;
+    end
+  end
+
+  // generate address_read_error_flag signal
+  always @(*) 
+  begin
+    if (mem_read_flag_in) 
+    begin
+      case(mem_sel_in)
+        4'b1111: 
+        begin
+          if (address[1:0] != 2'b00) 
+          begin      // word
+            address_read_error_flag <= 1;
+          end
+          else 
+          begin
+            address_read_error_flag <= 0;
+          end
+        end
+        default: begin
+          address_read_error_flag <= 0;
+        end
+      endcase
+    end
+    else begin
+      address_read_error_flag <= 0;
+    end
+  end
+    
 
 endmodule // MEM

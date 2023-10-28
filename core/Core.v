@@ -6,6 +6,7 @@ module Core(
   input                   clk,
   input                   rst,
   input                   stall,
+  input wire[5:0]         int_i,
   // ROM control
   output                  rom_en,
   output  [`MEM_SEL_BUS]  rom_write_en,
@@ -22,7 +23,8 @@ module Core(
   output                  debug_reg_write_en,
   output  [`REG_ADDR_BUS] debug_reg_write_addr,
   output  [`DATA_BUS]     debug_reg_write_data,
-  output  [`ADDR_BUS]     debug_pc_addr
+  output  [`ADDR_BUS]     debug_pc_addr,
+  output                  timer_int_o
 );
 
 
@@ -30,6 +32,9 @@ module Core(
   wire stall_pc_conn, stall_if_conn, stall_id_conn,
        stall_ex_conn, stall_mem_conn, stall_wb_conn;
 
+  // exception signals
+  wire exc_flush;
+  wire [`ADDR_BUS] exc_pc;
 
   // PC stage
   wire pc_branch_flag;
@@ -41,8 +46,10 @@ module Core(
     .rst            (rst),
 
     .stall_pc       (stall_pc_conn),
+    .flush          (exc_flush),
     .branch_flag    (pc_branch_flag),
     .branch_addr    (pc_branch_addr),
+    .exc_pc         (exc_pc),
     .pc             (pc_pc),
 
     .rom_en         (rom_en),
@@ -54,6 +61,7 @@ module Core(
   IFID ifid(
     .clk                  (clk),
     .rst                  (rst),
+    .flush                (exc_flush),
     .stall_current_stage  (stall_if_conn),
     .stall_next_stage     (stall_id_conn),
 
@@ -85,10 +93,14 @@ module Core(
   wire id_cp_read_en, id_cp_write_en;
   wire [`REG_ADDR_BUS] id_cp_read_addr, id_cp_write_addr;
   wire [`DATA_BUS] id_cp_read_data;
+  wire id_delayslot_flag_in,id_delayslot_flag_out,id_next_inst_delayslot_flag,idex_delayslot_flag;
+  wire id_eret_flag,id_syscall_flag,id_break_flag,idex_eret_flag,idex_syscall_flag,idex_break_flag;
 
   ID id_stage(
     .addr               (ifid_addr),
     .inst               (ifid_inst),
+
+    .delayslot_flag_in (id_delayslot_flag_in),
 
     .load_related_1     (id_load_related_1),
     .load_related_2     (id_load_related_2),
@@ -126,12 +138,19 @@ module Core(
     .current_pc_addr    (id_current_pc_addr),
 
     .cp_write_en        (id_cp_write_en),
-    .cp_write_addr      (id_cp_write_addr)
+    .cp_write_addr      (id_cp_write_addr),
+
+    .eret_flag          (id_eret_flag),
+    .syscall_flag       (id_syscall_flag),
+    .break_flag         (id_break_flag),
+    .next_inst_delayslot_flag (id_next_inst_delayslot_flag),
+    .delayslot_flag_out      (id_delayslot_flag_out)
   );
 
   IDEX idex(
     .clk                    (clk),
     .rst                    (rst),
+    .flush                  (exc_flush),
     .stall_current_stage    (stall_id_conn),
     .stall_next_stage       (stall_ex_conn),
 
@@ -149,6 +168,11 @@ module Core(
     .current_pc_addr_in     (id_current_pc_addr),
     .cp_write_en_in         (id_cp_write_en),
     .cp_write_addr_in       (id_cp_write_addr),
+    .eret_flag_in           (id_eret_flag),
+    .syscall_flag_in        (id_syscall_flag),
+    .break_flag_in          (id_break_flag),
+    .next_inst_delayslot_flag_in (id_next_inst_delayslot_flag),
+    .delayslot_flag_in     (id_delayslot_flag_out),
 
     .funct_out              (idex_funct),
     .shamt_out              (idex_shamt),
@@ -163,7 +187,12 @@ module Core(
     .reg_write_addr_out     (idex_reg_write_addr),
     .current_pc_addr_out    (idex_current_pc_addr),
     .cp_write_en_out        (idex_cp_write_en),
-    .cp_write_addr_out      (idex_cp_write_addr)
+    .cp_write_addr_out      (idex_cp_write_addr),
+    .eret_flag_out          (idex_eret_flag),
+    .syscall_flag_out       (idex_syscall_flag),
+    .break_flag_out         (idex_break_flag),
+    .next_inst_delayslot_flag_out   (id_delayslot_flag_in),
+    .delayslot_flag_out     (idex_delayslot_flag)
   );
 
 
@@ -177,6 +206,8 @@ module Core(
   wire ex_reg_write_en, exmem_reg_write_en,ex_cp_write_en,exmem_cp_write_en;
   wire[`REG_ADDR_BUS] ex_reg_write_addr, exmem_reg_write_addr,ex_cp_write_addr,exmem_cp_write_addr;
   wire[`ADDR_BUS] ex_current_pc_addr, exmem_current_pc_addr;
+  wire ex_eret_flag,ex_syscall_flag,ex_break_flag,ex_delayslot_flag,ex_overflow_flag;
+  wire exmem_eret_flag,exmem_syscall_flag,exmem_break_flag,exmem_delayslot_flag,exmem_overflow_flag;
 
   EX ex_stage(
     .funct                  (idex_funct),
@@ -193,6 +224,10 @@ module Core(
     .current_pc_addr_in     (idex_current_pc_addr),
     .cp_write_en_in         (idex_cp_write_en),
     .cp_write_addr_in       (idex_cp_write_addr),
+    .eret_flag_in           (idex_eret_flag),
+    .syscall_flag_in        (idex_syscall_flag),
+    .break_flag_in          (idex_break_flag),
+    .delayslot_flag_in      (idex_delayslot_flag),
 
     .ex_load_flag           (ex_ex_load_flag),
 
@@ -207,12 +242,18 @@ module Core(
     .reg_write_addr_out     (ex_reg_write_addr),
     .cp_write_en_out        (ex_cp_write_en),
     .cp_write_addr_out      (ex_cp_write_addr),
-    .current_pc_addr_out    (ex_current_pc_addr)
+    .current_pc_addr_out    (ex_current_pc_addr),
+    .eret_flag_out          (ex_eret_flag),
+    .syscall_flag_out       (ex_syscall_flag),
+    .break_flag_out         (ex_break_flag),
+    .delayslot_flag_out     (ex_delayslot_flag),
+    .overflow_flag          (ex_overflow_flag)
   );
 
   EXMEM exmem(
     .clk                    (clk),
     .rst                    (rst),
+    .flush                  (exc_flush),
     .stall_current_stage    (stall_ex_conn),
     .stall_next_stage       (stall_mem_conn),
 
@@ -228,6 +269,12 @@ module Core(
     .cp_write_en_in         (ex_cp_write_en),
     .cp_write_addr_in       (ex_cp_write_addr),
 
+    .eret_flag_in           (ex_eret_flag),
+    .syscall_flag_in        (ex_syscall_flag),
+    .break_flag_in          (ex_break_flag),
+    .delayslot_flag_in      (ex_delayslot_flag),
+    .overflow_flag_in       (ex_overflow_flag),
+
     .mem_read_flag_out      (exmem_mem_read_flag),
     .mem_write_flag_out     (exmem_mem_write_flag),
     .mem_sign_ext_flag_out  (exmem_mem_sign_ext_flag),
@@ -238,7 +285,13 @@ module Core(
     .reg_write_addr_out     (exmem_reg_write_addr),
     .current_pc_addr_out    (exmem_current_pc_addr),
     .cp_write_en_out        (exmem_cp_write_en),
-    .cp_write_addr_out      (exmem_cp_write_addr)
+    .cp_write_addr_out      (exmem_cp_write_addr),
+
+    .eret_flag_out          (exmem_eret_flag),
+    .syscall_flag_out       (exmem_syscall_flag),
+    .break_flag_out         (exmem_break_flag),
+    .delayslot_flag_out     (exmem_delayslot_flag),
+    .overflow_flag_out      (exmem_overflow_flag)
   );
 
 
@@ -251,6 +304,7 @@ module Core(
   wire mem_reg_write_en, memwb_reg_write_en,mem_cp_write_en,memwb_cp_write_en;
   wire[`REG_ADDR_BUS] mem_reg_write_addr, memwb_reg_write_addr,mem_cp_write_addr,memwb_cp_write_addr;
   wire[`ADDR_BUS] mem_current_pc_addr, memwb_current_pc_addr;
+  wire mem_eret_flag,mem_syscall_flag,mem_break_flag,mem_delayslot_flag,mem_overflow_flag,mem_address_read_error_flag,mem_address_write_error_flag;
 
   MEM mem_stage(
     .mem_read_flag_in       (exmem_mem_read_flag),
@@ -265,6 +319,12 @@ module Core(
     .cp_write_en_in         (exmem_cp_write_en),
     .cp_write_addr_in       (exmem_cp_write_addr),
     .current_pc_addr_in     (exmem_current_pc_addr),
+
+    .eret_flag_in           (exmem_eret_flag),
+    .syscall_flag_in        (exmem_syscall_flag),
+    .break_flag_in          (exmem_break_flag),
+    .delayslot_flag_in      (exmem_delayslot_flag),
+    .overflow_flag_in       (exmem_overflow_flag),
 
     .ram_en                 (ram_en),
     .ram_write_en           (ram_write_en),
@@ -282,12 +342,21 @@ module Core(
     .reg_write_addr_out     (mem_reg_write_addr),
     .cp_write_en_out        (mem_cp_write_en),
     .cp_write_addr_out      (mem_cp_write_addr),
-    .current_pc_addr_out    (mem_current_pc_addr)
+    .current_pc_addr_out    (mem_current_pc_addr),
+
+    .eret_flag_out          (mem_eret_flag),
+    .syscall_flag_out       (mem_syscall_flag),
+    .break_flag_out         (mem_break_flag),
+    .delayslot_flag_out     (mem_delayslot_flag),
+    .overflow_flag_out      (mem_overflow_flag),
+    .address_read_error_flag  (mem_address_read_error_flag),
+    .address_write_error_flag (mem_address_write_error_flag)
   );
 
   MEMWB memwb(
     .clk                    (clk),
     .rst                    (rst),
+    .flush                  (exc_flush),
     .stall_current_stage    (stall_mem_conn),
     .stall_next_stage       (stall_wb_conn),
 
@@ -374,18 +443,34 @@ module Core(
   );
 
   wire[`DATA_BUS] cp0_read_data;
+  wire[`ADDR_BUS] cp_epc,cp_rp_epc;
 
   CP0_reg cp0(
-    .clk          (clk),
-    .rst          (rst),
+    .clk                        (clk),
+    .rst                        (rst),
 
-    .read_en_i      (id_cp_read_en),
-    .read_addr_i    (id_cp_read_addr),
-    .read_data_o    (cp0_read_data),
+    .read_en_i                  (id_cp_read_en),
+    .write_en_i                 (wb_cp_write_en),
+    .read_addr_i                (id_cp_read_addr),
+    .write_addr_i               (wb_cp_write_addr),
+    .write_data_i               (wb_result),
 
-    .write_en_i     (wb_cp_write_en),
-    .write_addr_i   (wb_cp_write_addr),
-    .write_data_i   (wb_result)
+    .int_i                      (int_i),
+    .eret_flag_i                (mem_eret_flag),
+    .syscall_flag_i             (mem_syscall_flag),
+    .break_flag_i               (mem_break_flag),
+    .delayslot_flag_i           (mem_delayslot_flag),
+    .overflow_flag_i            (mem_overflow_flag),
+    .address_read_error_flag_i  (mem_address_read_error_flag),
+    .address_write_error_flag_i (mem_address_write_error_flag),
+    .current_pc_addr_i          (mem_current_pc_addr),
+
+    .epc_o                      (cp_epc),
+    .read_data_o                (cp0_read_data)
+
+    
+    
+    
   );
 
 
@@ -419,27 +504,46 @@ module Core(
     .read_addr_i              (id_cp_read_addr),
     .read_data_i              (cp0_read_data),
 
+    .cp_epc_i                 (cp_epc),
+
     .ex_cp_write_en           (ex_cp_write_en),
     .ex_cp_write_addr         (ex_cp_write_addr),
     .ex_cp_write_data         (ex_result),
 
     .mem_cp_write_en          (mem_cp_write_en),
     .mem_cp_write_addr        (mem_cp_write_addr),
-    .mem_cp_write_data        (mem_cp_write_data),
+    .mem_cp_write_data        (mem_result),
 
-    .cp_read_data_o           (id_cp_read_data)
+    .wb_cp_write_en           (wb_cp_write_en),
+    .wb_cp_write_addr         (wb_cp_write_addr),
+    .wb_cp_write_data         (wb_result),
+
+    .cp_read_data_o           (id_cp_read_data),
+    .cp_epc_o                 (cp_rp_epc)
   );
 
   // pipeline control
   PipelineController pipeline_controller(
     .request_from_id  (id_stall_request),
     .stall_all        (stall),
+    
+    .cp0_epc          (cp_rp_epc),
+    .eret_flag        (mem_eret_flag),
+    .syscall_flag     (mem_syscall_flag),
+    .break_flag       (mem_break_flag),
+    .overflow_flag    (mem_overflow_flag),
+    .address_read_error_flag  (mem_address_read_error_flag),
+    .address_write_error_flag (mem_address_write_error_flag),
+
     .stall_pc         (stall_pc_conn),
     .stall_if         (stall_if_conn),
     .stall_id         (stall_id_conn),
     .stall_ex         (stall_ex_conn),
     .stall_mem        (stall_mem_conn),
-    .stall_wb         (stall_wb_conn)
+    .stall_wb         (stall_wb_conn),
+
+    .flush            (exc_flush),
+    .exc_pc           (exc_pc)
   );
 
 

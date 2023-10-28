@@ -19,6 +19,10 @@ module EX(
   input       [`ADDR_BUS]     current_pc_addr_in,
   input                       cp_write_en_in,
   input       [`REG_ADDR_BUS] cp_write_addr_in,
+  input                       eret_flag_in,
+  input                       syscall_flag_in,
+  input                       break_flag_in,
+  input                       delayslot_flag_in,
   // to ID stage (solve data hazards)
   output                      ex_load_flag,
   // to MEM stage
@@ -33,7 +37,12 @@ module EX(
   output      [`REG_ADDR_BUS] reg_write_addr_out,
   output                      cp_write_en_out,
   output      [`REG_ADDR_BUS] cp_write_addr_out,
-  output      [`ADDR_BUS]     current_pc_addr_out
+  output      [`ADDR_BUS]     current_pc_addr_out,
+  output                      eret_flag_out,
+  output                      syscall_flag_out,
+  output                      break_flag_out,
+  output                      overflow_flag,
+  output                      delayslot_flag_out
 );
 
   // to ID stage
@@ -45,11 +54,15 @@ module EX(
   assign mem_sel_out = mem_sel_in;
   assign mem_write_data_out = mem_write_data_in;
   // to WB stage
-  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in && !cp_write_en_in;
+  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in && !cp_write_en_in && !overflow_flag;
   assign reg_write_addr_out = reg_write_addr_in;
   assign current_pc_addr_out = current_pc_addr_in;
   assign cp_write_en_out = cp_write_addr_in && !mem_write_flag_in && !reg_write_en_in;
   assign cp_write_addr_out = cp_write_addr_in;
+  assign eret_flag_out = eret_flag_in;
+  assign syscall_flag_out = syscall_flag_in;
+  assign break_flag_out = break_flag_in;
+  assign delayslot_flag_out = delayslot_flag_in;
 
   // calculate the complement of operand_2
   wire[`DATA_BUS] operand_2_mux =
@@ -88,5 +101,8 @@ module EX(
       default: result <= 0;
     endcase
   end
+
+  //adjust overflow
+  assign overflow_flag = (operand_1[`DATA_BUS_WIDTH-1] == operand_2[`DATA_BUS_WIDTH-1] && result[`DATA_BUS_WIDTH-1] != operand_1[`DATA_BUS_WIDTH-1]); 
 
 endmodule // EX
