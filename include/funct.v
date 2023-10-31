@@ -25,6 +25,22 @@
 `define FUNCT_SLT       6'b101010
 `define FUNCT_SLTU      6'b101011
 
+//hilo
+`define FUNCT_MFHI      6'b010000
+`define FUNCT_MTHI      6'b010001
+
+`define FUNCT_MFLO      6'b010010
+`define FUNCT_MTLO      6'b010011
+
+//mult div
+`define FUNCT_DIV      6'b011010
+`define FUNCT_DIVU     6'b011011
+
+`define FUNCT_MULT     6'b011000
+`define FUNCT_MULTU    6'b011001
+
+
+
 // NOTE: improper usage
 // it's NOP because '111111' is meaningless in current MIPS ISA
 // but we can't make sure it won't be used in a future version
