@@ -14,6 +14,10 @@ module MEM(
   input                       reg_write_en_in,
   input       [`REG_ADDR_BUS] reg_write_addr_in,
   input       [`ADDR_BUS]     current_pc_addr_in,
+  // HI & LO control
+  input                       hilo_write_en_in,
+  input       [`DATA_BUS]     hi_in,
+  input       [`DATA_BUS]     lo_in,
   // RAM control signals
   output                      ram_en,
   output      [`MEM_SEL_BUS]  ram_write_en,
@@ -29,7 +33,11 @@ module MEM(
   output      [`DATA_BUS]     result_out,
   output                      reg_write_en_out,
   output      [`REG_ADDR_BUS] reg_write_addr_out,
-  output      [`ADDR_BUS]     current_pc_addr_out
+  output      [`ADDR_BUS]     current_pc_addr_out,
+  // HI & LO control
+  output                      hilo_write_en_out,
+  output      [`DATA_BUS]     hi_out,
+  output      [`DATA_BUS]     lo_out
 );
 
   // internal ram_write_sel control signal
@@ -48,6 +56,11 @@ module MEM(
   assign current_pc_addr_out = current_pc_addr_in;
 
   wire[`ADDR_BUS] address = result_in;
+
+  // HI & LO control
+  assign hilo_write_en_out = hilo_write_en_in;
+  assign hi_out = hi_in;
+  assign lo_out = lo_in;
 
   // generate ram_en signal
   assign ram_en = mem_write_flag_in || mem_read_flag_in;

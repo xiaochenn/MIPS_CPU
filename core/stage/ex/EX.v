@@ -29,7 +29,18 @@ module EX(
   output  reg [`DATA_BUS]     result,
   output                      reg_write_en_out,
   output      [`REG_ADDR_BUS] reg_write_addr_out,
-  output      [`ADDR_BUS]     current_pc_addr_out
+  output      [`ADDR_BUS]     current_pc_addr_out,
+  //to HILO
+  input       [`DATA_BUS]     hi_in,
+  input       [`DATA_BUS]     lo_in,
+
+  output  reg [`DATA_BUS]     hi_out,
+  output  reg [`DATA_BUS]     lo_out,
+  output  reg                 hilo_write_en,
+  //to mult_div
+  input                       mult_div_done,
+  output  reg [`MULT_DIV_BUS] mult_div_result,
+  output  reg                 stall_request 
 );
 
   // to ID stage
@@ -74,12 +85,55 @@ module EX(
       `FUNCT_SLT, `FUNCT_SLTU: result <= {31'b0, operand_1_lt_operand_2};
       // arithmetic
       `FUNCT_ADDU, `FUNCT_SUBU,`FUNCT_ADD: result <= result_sum;
+      // hilo
+      `FUNCT_MFHI: result <= hi_in;
+      `FUNCT_MFLO: result <= lo_in;
       // shift
       `FUNCT_SLL: result <= operand_2 << shamt;
       `FUNCT_SLLV: result <= operand_2 << operand_1[4:0];
       `FUNCT_SRLV: result <= operand_2 >> operand_1[4:0];
       `FUNCT_SRAV: result <= ({32{operand_2[31]}} << (6'd32 - {1'b0, operand_1[4:0]})) | operand_2 >> operand_1[4:0];
       default: result <= 0;
+    endcase
+  end
+  // HI & LO control
+  always @(*) begin
+    case (funct)
+    `FUNCT_MTHI: begin
+      hilo_write_en <= 1;
+      hi_out <= operand_1;
+      lo_out <= lo_in;
+    end
+    `FUNCT_MTLO: begin
+      hilo_write_en <= 1;
+      hi_out <= hi_in;
+      lo_out <= operand_1;
+    end
+    default: begin
+      hilo_write_en <= 0;
+      hi_out <= hi_in;
+      lo_out <= lo_in;
+    end
+    endcase
+  end
+// HI & LO control
+  always @(*) begin
+    case (funct)
+      `FUNCT_MULT, `FUNCT_MULTU,
+      `FUNCT_DIV, `FUNCT_DIVU: begin
+        hilo_write_en <= 1;
+        hi_out <= mult_div_result[63:32];
+        lo_out <= mult_div_result[31: 0];
+      end
+    endcase
+  end
+  always @(*) begin
+    case (funct)
+      `FUNCT_MULT, `FUNCT_MULTU,
+      `FUNCT_DIV, `FUNCT_DIVU: begin
+        stall_request <= !mult_div_done;
+      end
+      default: stall_request <= 0;
     endcase
   end
 
