@@ -1,6 +1,6 @@
 `include "bus.v"
 
-module(
+module MultDiv(
   input                       clk,
   input                       rst,
   input                       stall_all,

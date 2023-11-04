@@ -2,7 +2,7 @@
 
 `include "bus.v"
 
-module (
+module HILO(
   input clk,
   input rst,
   input write_en,
@@ -11,7 +11,7 @@ module (
   input        [`DATA_BUS] lo_i,
 
   output  wire [`DATA_BUS] hi_o,
-  output  wire [`DATA_BUS] lo_o,
+  output  wire [`DATA_BUS] lo_o
 );
   reg [`DATA_BUS] hi;
   reg [`DATA_BUS] lo;
