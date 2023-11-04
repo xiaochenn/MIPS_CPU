@@ -148,7 +148,8 @@ module CP0_reg(
         end
         else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) 
         begin
-            reg_cause[31] <= delayslot_flag_i;
+            if (reg_status[1] != 1)
+                reg_cause[31] <= delayslot_flag_i;
             if (break_flag_i)
                 reg_cause[6:2] <= `CP0_EXCCODE_BP;
             else if (syscall_flag_i)
@@ -177,7 +178,7 @@ module CP0_reg(
         begin
             reg_epc <= 32'h0;
         end
-        else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) 
+        else if ((break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) && reg_status[1] != 1) 
         begin
             reg_epc <= exc_epc;
         end
