@@ -37,7 +37,7 @@ module MEM(
   // HI & LO control
   output                      hilo_write_en_out,
   output      [`DATA_BUS]     hi_out,
-  output      [`DATA_BUS]     lo_out,
+  output      [`DATA_BUS]     lo_out
 );
 
   // internal ram_write_sel control signal

@@ -29,14 +29,14 @@ module EX(
   output  reg [`DATA_BUS]     result,
   output                      reg_write_en_out,
   output      [`REG_ADDR_BUS] reg_write_addr_out,
-  output      [`ADDR_BUS]     current_pc_addr_out
+  output      [`ADDR_BUS]     current_pc_addr_out,
   //to HILO
   input       [`DATA_BUS]     hi_in,
   input       [`DATA_BUS]     lo_in,
 
   output  reg [`DATA_BUS]     hi_out,
   output  reg [`DATA_BUS]     lo_out,
-  output  reg                 hilo_write_en
+  output  reg                 hilo_write_en,
   //to mult_div
   input                       mult_div_done,
   output  reg [`MULT_DIV_BUS] mult_div_result,
