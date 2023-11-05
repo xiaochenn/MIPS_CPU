@@ -38,9 +38,9 @@ module BranchGen(
           branch_addr <= 0;
         end
       end
-      `OP_BLTZ: begin
+      `OP_BLEZ: begin
         next_inst_delayslot_flag <= 1;
-        if ($signed(reg_data_1) < 0) begin
+        if ($signed(reg_data_1) <= 0) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
         end
@@ -49,6 +49,52 @@ module BranchGen(
           branch_addr <= 0;
         end
       end
+      `OP_BSPECIAL: begin
+        if (inst[20:16] == 5'b00001) begin   //BGEZ
+          next_inst_delayslot_flag <= 1;
+          if ($signed(reg_data_1) >= 0) begin
+          branch_flag <= 1;
+          branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
+        end
+        else begin
+          branch_flag <= 0;
+          branch_addr <= 0;
+        end
+        end
+        else if(inst[20:16]==5'b00000) begin       //BLTZ
+          next_inst_delayslot_flag <= 1;
+          if($signed(reg_data_1) < 0) begin
+            branch_flag <= 1;
+            branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
+        end
+        else begin
+          branch_flag <= 0;
+          branch_addr <= 0;
+        end
+        end
+        else if(inst[20:16]==5'b10001) begin   //BGEZAL
+           next_inst_delayslot_flag <= 1;
+           if ($signed(reg_data_1) >= 0) begin
+            branch_flag <= 1;
+            branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
+          end
+          else begin
+            branch_flag <= 0;
+            branch_addr <= 0;
+          end
+        end
+        else if(inst[20:16]==5'b10000) begin  //BLTZAL
+          next_inst_delayslot_flag <= 1;
+          if ($signed(reg_data_1) < 0) begin
+            branch_flag <= 1;
+            branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
+          end
+          else begin
+            branch_flag <= 0;
+            branch_addr <= 0;
+          end
+        end
+      end 
       `OP_SPECIAL: begin
         if (funct == `FUNCT_JALR) begin
           branch_flag <= 1;

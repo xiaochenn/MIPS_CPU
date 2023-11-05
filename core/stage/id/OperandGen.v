@@ -30,9 +30,9 @@ module OperandGen(
   always @(*) begin
     case (op)
       // immediate
-      `OP_ADDIU, `OP_LUI,
+      `OP_ADDIU, `OP_LUI, `OP_ANDI,`OP_XORI,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW, `OP_ANDI,`OP_ORI,`OP_LH: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW, `OP_ORI: begin
         operand_1 <= reg_data_1;
       end
       `OP_SPECIAL: begin
@@ -41,6 +41,9 @@ module OperandGen(
       `OP_JAL: begin
         operand_1 <= link_addr;
       end
+      // `OP_BSPECIAL,: begin
+      //   operand_1 <= link_addr;
+      // end
       `OP_PRIVILEGE: begin
         if (inst_mfc0) 
         begin
@@ -69,7 +72,7 @@ module OperandGen(
       `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW,`OP_LH: begin
         operand_2 <= sign_ext_imm;
       end
-      `OP_ANDI,`OP_ORI: begin
+      `OP_ANDI,`OP_ORI,`OP_XORI: begin
         operand_2 <= zero_ext_imm;
       end
       `OP_SPECIAL: begin

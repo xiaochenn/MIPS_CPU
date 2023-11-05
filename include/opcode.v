@@ -7,20 +7,24 @@
 // j-type
 `define OP_JAL        6'b000011
 `define OP_BGTZ       6'b000111
-`define OP_BLTZ        6'b000001
+`define OP_BLTZ       6'b000001
 
 // branch
 `define OP_BEQ        6'b000100
 `define OP_BNE        6'b000101
+`define OP_BSPECIAL   6'b000001
+`define OP_BLEZ       6'b000110 
 
 // arithmetic
 `define OP_ADDIU      6'b001001
 `define OP_ADDI       6'b001000
 
+
 // immediate
 `define OP_LUI        6'b001111
 `define OP_ANDI       6'b001100
 `define OP_ORI        6'b001101
+`define OP_XORI       6'b001110 
 
 // memory accessing
 `define OP_LB         6'b100000

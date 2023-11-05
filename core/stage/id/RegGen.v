@@ -27,7 +27,7 @@ module RegGen(
   always @(*) begin
     case (op)
       // jump
-      `OP_BGTZ,`OP_BLTZ,
+      `OP_BGTZ,`OP_BLEZ,
       // arithmetic & logic (immediate)
       `OP_ADDIU,`OP_ORI,
       // memory accessing
@@ -40,11 +40,11 @@ module RegGen(
       // branch
       `OP_BEQ, `OP_BNE,
       // arithmetic & logic (immediate)
-      `OP_ANDI,
+      `OP_ANDI,`OP_XORI,
       // memory accessing
       `OP_SB, `OP_SW,
       // r-type
-      `OP_SPECIAL: begin
+      `OP_SPECIAL,`OP_BSPECIAL: begin
         reg_read_en_1 <= 1;
         reg_read_en_2 <= 1;
         reg_addr_1 <= rs;
@@ -96,10 +96,20 @@ module RegGen(
         reg_write_en <= 1;
         reg_write_addr <= 31;   // $ra (return address)
       end
-      `OP_LB, `OP_LBU, `OP_LW,`OP_ANDI,`OP_ORI,`OP_LH: begin
+      `OP_LB, `OP_LBU, `OP_LW,`OP_ANDI,`OP_ORI,`OP_LH,`OP_XORI: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end
+      // `OP_BSPECIAL:begin
+      //   if (rt == 5'b10001) begin
+      //     reg_write_en <= 1;
+      //     reg_write_addr <= 31;
+      //   end
+      //   else if (rt == 5'b10000) begin
+      //     reg_write_en <= 1;
+      //     reg_write_addr <= 31;
+      //   end
+      // end
       `OP_PRIVILEGE: begin
         if (rs == 5'b00000) begin
           reg_write_en <= 1;

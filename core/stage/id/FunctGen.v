@@ -14,12 +14,11 @@ module FunctGen(
   always @(*) begin
     case (op)
       `OP_SPECIAL: funct <= funct_in;
-      `OP_LUI: funct <= `FUNCT_OR;
+      `OP_ORI, `OP_LUI, `OP_JAL: funct <= `FUNCT_OR;
       `OP_LB, `OP_LBU, `OP_LW,
-      `OP_SB, `OP_SW, `OP_ADDIU,`OP_LH,`OP_PRIVILEGE: funct <= `FUNCT_ADDU;
-      `OP_JAL: funct <= `FUNCT_OR;
+      `OP_SB, `OP_SW, `OP_ADDIU,`OP_LH,`OP_PRIVILEGE,`OP_BSPECIAL: funct <= `FUNCT_ADDU;
       `OP_ANDI:funct <= `FUNCT_AND;
-      `OP_ORI:funct <= `FUNCT_XOR;
+      `OP_XORI: funct <= `FUNCT_XOR;
       default: funct <= `FUNCT_NOP;
     endcase
   end

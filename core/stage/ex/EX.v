@@ -57,6 +57,9 @@ module EX(
   output  reg                 stall_request 
 );
 
+wire multdiv_inst = (funct == `FUNCT_MULT || funct == `FUNCT_MULTU
+                    || funct == `FUNCT_DIV  || funct == `FUNCT_DIVU);
+
   // to ID stage
   assign ex_load_flag = mem_read_flag_in;
   // to MEM stage
@@ -66,7 +69,7 @@ module EX(
   assign mem_sel_out = mem_sel_in;
   assign mem_write_data_out = mem_write_data_in;
   // to WB stage
-  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in && !cp_write_en_in && !overflow_flag;
+  assign reg_write_en_out = reg_write_en_in && !mem_write_flag_in && !cp_write_en_in && !overflow_flag && !multdiv_inst;
   assign reg_write_addr_out = reg_write_addr_in;
   assign current_pc_addr_out = current_pc_addr_in;
   assign cp_write_en_out = cp_write_addr_in && !mem_write_flag_in && !reg_write_en_in;
@@ -78,7 +81,7 @@ module EX(
 
   // calculate the complement of operand_2
   wire[`DATA_BUS] operand_2_mux =
-      (funct == `FUNCT_SUBU || funct == `FUNCT_SLT)
+      (funct == `FUNCT_SUBU || funct == `FUNCT_SLT || funct == `FUNCT_SUB)
         ? (~operand_2) + 1 : operand_2;
 
   // sum of operand_1 & operand_2
@@ -101,10 +104,11 @@ module EX(
       `FUNCT_JALR, `FUNCT_OR: result <= operand_1 | operand_2;
       `FUNCT_AND: result <= operand_1 & operand_2;
       `FUNCT_XOR: result <= operand_1 ^ operand_2;
+      `FUNCT_NOR: result <= ~ ( operand_1 | operand_2 );
       // comparison
       `FUNCT_SLT, `FUNCT_SLTU: result <= {31'b0, operand_1_lt_operand_2};
       // arithmetic
-      `FUNCT_ADDU, `FUNCT_SUBU,`FUNCT_ADD: result <= result_sum;
+      `FUNCT_ADDU, `FUNCT_SUBU,`FUNCT_ADD,`FUNCT_SUB: result <= result_sum;
       // hilo
       `FUNCT_MFHI: result <= hi_in;
       `FUNCT_MFLO: result <= lo_in;
@@ -159,7 +163,7 @@ module EX(
   end
 
   //adjust overflow
-  assign overflow_flag = (operand_1[`DATA_BUS_WIDTH-1] == operand_2[`DATA_BUS_WIDTH-1] && result[`DATA_BUS_WIDTH-1] != operand_1[`DATA_BUS_WIDTH-1] && (overflow_judge_flag)); 
+  assign overflow_flag = (operand_1[`DATA_BUS_WIDTH-1] == operand_2_mux[`DATA_BUS_WIDTH-1] && result[`DATA_BUS_WIDTH-1] != operand_1[`DATA_BUS_WIDTH-1] && (overflow_judge_flag)); 
 
 
 endmodule // EX

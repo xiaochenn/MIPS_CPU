@@ -10,18 +10,20 @@
 // jump
 `define FUNCT_JALR      6'b001001
 `define FUNCT_JR        6'b001000
+`define FUNCT_J         6'b000010
 
 // arithmetic
 `define FUNCT_ADDU      6'b100001
 `define FUNCT_SUBU      6'b100011
 `define FUNCT_ADD       6'b100000 
-`define FUNCT_SUB       6'b100010 
+`define FUNCT_SUB       6'b100010
 
 
 // logic
 `define FUNCT_AND       6'b100100
 `define FUNCT_OR        6'b100101
 `define FUNCT_XOR       6'b100110
+`define FUNCT_NOR       6'b100111
 
 // comparison
 `define FUNCT_SLT       6'b101010
