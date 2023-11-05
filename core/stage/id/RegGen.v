@@ -23,6 +23,7 @@ module RegGen(
       `OP_BGTZ,`OP_BLTZ,
       // arithmetic & logic (immediate)
       `OP_ADDIU,`OP_ORI,
+      `OP_SLTI, `OP_SLTIU,
       // memory accessing
       `OP_LB, `OP_LW, `OP_LBU,`OP_LH: begin
         reg_read_en_1 <= 1;
@@ -56,7 +57,8 @@ module RegGen(
   always @(*) begin
     case (op)
       // immediate
-      `OP_ADDIU, `OP_LUI: begin
+      `OP_ADDIU, `OP_LUI,
+      `OP_SLTI, `OP_SLTIU: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end
