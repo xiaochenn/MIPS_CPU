@@ -517,6 +517,8 @@ module Core(
     .write_addr_i               (wb_cp_write_addr),
     .write_data_i               (wb_result),
 
+    .result_in                  (mem_result),
+
     .int_i                      (int_i),
     .eret_flag_i                (mem_eret_flag),
     .syscall_flag_i             (mem_syscall_flag),

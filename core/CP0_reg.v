@@ -15,6 +15,8 @@ module CP0_reg(
     input [`REG_ADDR_BUS] write_addr_i,
     input [`DATA_BUS] write_data_i,
     
+    input [`DATA_BUS] result_in, //result from MEM stage
+    
     //exception
     input [5:0] int_i,
     input wire eret_flag_i,
@@ -51,10 +53,14 @@ module CP0_reg(
        begin
            reg_badvaddr <= 32'h0;
        end
-       // only read
        else 
        begin
-           reg_badvaddr <= reg_badvaddr;
+            if (address_read_error_flag_i || address_write_error_flag_i)
+                reg_badvaddr <= result_in;
+            else
+            begin
+                reg_badvaddr <= reg_badvaddr;
+            end
        end
    end
 
@@ -221,6 +227,10 @@ module CP0_reg(
                 `CP0_REG_EPC:
                 begin
                     read_data_o <= reg_epc;       //读epc
+                end
+                `CP0_REG_BADVADDR:
+                begin
+                    read_data_o <= reg_badvaddr;  //读badvaddr
                 end
                 default:
                 begin
