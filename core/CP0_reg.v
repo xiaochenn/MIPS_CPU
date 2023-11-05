@@ -178,7 +178,7 @@ module CP0_reg(
         begin
             reg_epc <= 32'h0;
         end
-        else if ((break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) && reg_status[1] != 1) 
+        else if ((break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i)) 
         begin
             reg_epc <= exc_epc;
         end

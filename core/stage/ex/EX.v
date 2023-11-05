@@ -23,6 +23,7 @@ module EX(
   input                       syscall_flag_in,
   input                       break_flag_in,
   input                       delayslot_flag_in,
+  input                       overflow_judge_flag,
   // to ID stage (solve data hazards)
   output                      ex_load_flag,
   // to MEM stage
@@ -42,7 +43,18 @@ module EX(
   output                      syscall_flag_out,
   output                      break_flag_out,
   output                      overflow_flag,
-  output                      delayslot_flag_out
+  output                      delayslot_flag_out,
+  //to HILO
+  input       [`DATA_BUS]     hi_in,
+  input       [`DATA_BUS]     lo_in,
+
+  output  reg [`DATA_BUS]     hi_out,
+  output  reg [`DATA_BUS]     lo_out,
+  output  reg                 hilo_write_en,
+  //to mult_div
+  input                       mult_div_done,
+  input       [`MULT_DIV_BUS] mult_div_result,
+  output  reg                 stall_request 
 );
 
   // to ID stage
@@ -93,6 +105,9 @@ module EX(
       `FUNCT_SLT, `FUNCT_SLTU: result <= {31'b0, operand_1_lt_operand_2};
       // arithmetic
       `FUNCT_ADDU, `FUNCT_SUBU,`FUNCT_ADD: result <= result_sum;
+      // hilo
+      `FUNCT_MFHI: result <= hi_in;
+      `FUNCT_MFLO: result <= lo_in;
       // shift
       `FUNCT_SLL: result <= operand_2 << shamt;
       `FUNCT_SLLV: result <= operand_2 << operand_1[4:0];
@@ -101,8 +116,50 @@ module EX(
       default: result <= 0;
     endcase
   end
+ 
+  // HI & LO control
+  always @(*) begin
+    case (funct)
+    `FUNCT_MTHI: begin
+      hilo_write_en <= 1;
+      hi_out <= operand_1;
+      lo_out <= lo_in;
+    end
+    `FUNCT_MTLO: begin
+      hilo_write_en <= 1;
+      hi_out <= hi_in;
+      lo_out <= operand_1;
+    end
+    default: begin
+      hilo_write_en <= 0;
+      hi_out <= hi_in;
+      lo_out <= lo_in;
+    end
+    endcase
+  end
+// HI & LO control
+  always @(*) begin
+    case (funct)
+      `FUNCT_MULT, `FUNCT_MULTU,
+      `FUNCT_DIV, `FUNCT_DIVU: begin
+        hilo_write_en <= 1;
+        hi_out <= mult_div_result[63:32];
+        lo_out <= mult_div_result[31: 0];
+      end
+    endcase
+  end
+  always @(*) begin
+    case (funct)
+      `FUNCT_MULT, `FUNCT_MULTU,
+      `FUNCT_DIV, `FUNCT_DIVU: begin
+        stall_request <= !mult_div_done;
+      end
+      default: stall_request <= 0;
+    endcase
+  end
 
   //adjust overflow
-  assign overflow_flag = (operand_1[`DATA_BUS_WIDTH-1] == operand_2[`DATA_BUS_WIDTH-1] && result[`DATA_BUS_WIDTH-1] != operand_1[`DATA_BUS_WIDTH-1]); 
+  assign overflow_flag = (operand_1[`DATA_BUS_WIDTH-1] == operand_2[`DATA_BUS_WIDTH-1] && result[`DATA_BUS_WIDTH-1] != operand_1[`DATA_BUS_WIDTH-1] && (overflow_judge_flag)); 
+
 
 endmodule // EX

@@ -26,6 +26,10 @@ module EXMEM(
   input                   break_flag_in,
   input                   overflow_flag_in,
   input                   delayslot_flag_in,
+  // HI & LO control
+  input                   hilo_write_en_in,
+  input   [`DATA_BUS]     hi_in,
+  input   [`DATA_BUS]     lo_in,
   // output to MEM stage
   output                  mem_read_flag_out,
   output                  mem_write_flag_out,
@@ -44,7 +48,11 @@ module EXMEM(
   output                  syscall_flag_out,
   output                  break_flag_out,
   output                  overflow_flag_out,
-  output                  delayslot_flag_out
+  output                  delayslot_flag_out,
+  // HI & LO control
+  output                  hilo_write_en_out,
+  output  [`DATA_BUS]     hi_out,
+  output  [`DATA_BUS]     lo_out
 );
 
   PipelineDeliver #(1) ff_mem_read_flag(
@@ -141,6 +149,24 @@ module EXMEM(
     clk, rst,flush,
     stall_current_stage, stall_next_stage,
     delayslot_flag_in, delayslot_flag_out
+  );
+
+  PipelineDeliver #(1) ff_hilo_write_en(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    hilo_write_en_in, hilo_write_en_out
+  );
+
+  PipelineDeliver #(`DATA_BUS_WIDTH) ff_hi(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    hi_in, hi_out
+  );
+
+  PipelineDeliver #(`DATA_BUS_WIDTH) ff_lo(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    lo_in, lo_out
   );
 
 endmodule // EXMEM

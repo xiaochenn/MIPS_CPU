@@ -15,6 +15,7 @@
 
 // arithmetic
 `define OP_ADDIU      6'b001001
+`define OP_ADDI       6'b001000
 
 // immediate
 `define OP_LUI        6'b001111

@@ -22,6 +22,10 @@ module MEM(
   input                       cp_write_en_in,
   input       [`REG_ADDR_BUS] cp_write_addr_in,
   input       [`ADDR_BUS]     current_pc_addr_in,
+  // HI & LO control
+  input                       hilo_write_en_in,
+  input       [`DATA_BUS]     hi_in,
+  input       [`DATA_BUS]     lo_in,
   // RAM control signals
   output                      ram_en,
   output      [`MEM_SEL_BUS]  ram_write_en,
@@ -46,7 +50,11 @@ module MEM(
   output                      overflow_flag_out,
   output                      delayslot_flag_out,
   output     reg              address_read_error_flag,
-  output     reg              address_write_error_flag
+  output     reg              address_write_error_flag,
+  // HI & LO control
+  output                      hilo_write_en_out,
+  output      [`DATA_BUS]     hi_out,
+  output      [`DATA_BUS]     lo_out
 );
 
   // internal ram_write_sel control signal
@@ -73,6 +81,11 @@ module MEM(
   assign delayslot_flag_out = delayslot_flag_in;
 
   wire[`ADDR_BUS] address = result_in;
+
+  // HI & LO control
+  assign hilo_write_en_out = hilo_write_en_in;
+  assign hi_out = hi_in;
+  assign lo_out = lo_in;
 
   // generate ram_en signal
   assign ram_en = mem_write_flag_in || mem_read_flag_in;

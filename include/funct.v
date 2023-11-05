@@ -15,6 +15,8 @@
 `define FUNCT_ADDU      6'b100001
 `define FUNCT_SUBU      6'b100011
 `define FUNCT_ADD       6'b100000 
+`define FUNCT_SUB       6'b100010 
+
 
 // logic
 `define FUNCT_AND       6'b100100
@@ -24,6 +26,22 @@
 // comparison
 `define FUNCT_SLT       6'b101010
 `define FUNCT_SLTU      6'b101011
+
+//hilo
+`define FUNCT_MFHI      6'b010000
+`define FUNCT_MTHI      6'b010001
+
+`define FUNCT_MFLO      6'b010010
+`define FUNCT_MTLO      6'b010011
+
+//mult div
+`define FUNCT_DIV      6'b011010
+`define FUNCT_DIVU     6'b011011
+
+`define FUNCT_MULT     6'b011000
+`define FUNCT_MULTU    6'b011001
+
+
 
 // Exception
 `define FUNCT_SYSCALL   6'b001100

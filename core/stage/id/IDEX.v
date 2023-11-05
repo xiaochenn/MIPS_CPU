@@ -23,6 +23,7 @@ module IDEX(
   input   [`ADDR_BUS]     current_pc_addr_in,
   input                   cp_write_en_in,
   input   [`REG_ADDR_BUS] cp_write_addr_in,
+  input                   overflow_judge_flag_in,
   input                   eret_flag_in,
   input                   syscall_flag_in,
   input                   break_flag_in,
@@ -43,6 +44,7 @@ module IDEX(
   output  [`ADDR_BUS]     current_pc_addr_out,
   output                  cp_write_en_out,
   output  [`REG_ADDR_BUS] cp_write_addr_out,
+  output                  overflow_judge_flag_out,      
   output                  eret_flag_out,
   output                  syscall_flag_out,
   output                  break_flag_out,
@@ -162,6 +164,12 @@ module IDEX(
     clk, rst,flush,
     stall_current_stage, stall_next_stage,
     delayslot_flag_in, delayslot_flag_out
+  );
+
+  PipelineDeliver #(1) ff_overflow_judge_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    overflow_judge_flag_in, overflow_judge_flag_out
   );
 
 endmodule // IDEX

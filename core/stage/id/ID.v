@@ -54,6 +54,7 @@ module ID(
   output                  syscall_flag,
   output                  break_flag,
   output                  next_inst_delayslot_flag,
+  output                  overflow_judge_flag,
   output                  delayslot_flag_out
 );
 
@@ -73,6 +74,8 @@ module ID(
   assign inst_mfc0 = (inst[31:21] == 11'b01000000000 && inst[10:0] == 11'b00000000000); //mfc0指令
   assign inst_mtc0 = (inst[31:21] == 11'b01000000100 && inst[10:0] == 11'b00000000000); //mtc0指令
   assign delayslot_flag_out = delayslot_flag_in;
+
+  assign overflow_judge_flag = (inst_funct == `FUNCT_ADD || inst_funct == `FUNCT_SUB || inst_op == `OP_ADDI);
 
   // generate address of registers
   RegGen reg_gen(

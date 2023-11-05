@@ -95,6 +95,7 @@ module Core(
   wire [`DATA_BUS] id_cp_read_data;
   wire id_delayslot_flag_in,id_delayslot_flag_out,id_next_inst_delayslot_flag,idex_delayslot_flag;
   wire id_eret_flag,id_syscall_flag,id_break_flag,idex_eret_flag,idex_syscall_flag,idex_break_flag;
+  wire id_over_judge_flag,idex_over_judge_flag;
 
   ID id_stage(
     .addr               (ifid_addr),
@@ -140,6 +141,8 @@ module Core(
     .cp_write_en        (id_cp_write_en),
     .cp_write_addr      (id_cp_write_addr),
 
+    .overflow_judge_flag (id_over_judge_flag),
+
     .eret_flag          (id_eret_flag),
     .syscall_flag       (id_syscall_flag),
     .break_flag         (id_break_flag),
@@ -168,6 +171,7 @@ module Core(
     .current_pc_addr_in     (id_current_pc_addr),
     .cp_write_en_in         (id_cp_write_en),
     .cp_write_addr_in       (id_cp_write_addr),
+    .overflow_judge_flag_in (id_over_judge_flag),
     .eret_flag_in           (id_eret_flag),
     .syscall_flag_in        (id_syscall_flag),
     .break_flag_in          (id_break_flag),
@@ -188,6 +192,7 @@ module Core(
     .current_pc_addr_out    (idex_current_pc_addr),
     .cp_write_en_out        (idex_cp_write_en),
     .cp_write_addr_out      (idex_cp_write_addr),
+    .overflow_judge_flag_out (idex_over_judge_flag),
     .eret_flag_out          (idex_eret_flag),
     .syscall_flag_out       (idex_syscall_flag),
     .break_flag_out         (idex_break_flag),
@@ -196,7 +201,23 @@ module Core(
   );
 
 
+  wire multdiv_done; 
+  wire [`MULT_DIV_BUS] multdiv_result;
+  MultDiv u_MultDiv(
+    .clk                    (clk),
+    .rst                    (rst),
+    .stall_all              (stall),
+    .flush                  (exc_flush),
+    .funct                  (idex_funct),
+    .operand_1              (idex_operand_1),
+    .operand_2              (idex_operand_2),
+
+    .done                   (multdiv_done),
+    .result                 (multdiv_result)
+  );
+
   // EX stage
+  wire ex_stall_request;
   wire ex_ex_load_flag;
   wire ex_mem_read_flag, ex_mem_write_flag, ex_mem_sign_ext_flag;
   wire exmem_mem_read_flag, exmem_mem_write_flag, exmem_mem_sign_ext_flag;
@@ -208,6 +229,8 @@ module Core(
   wire[`ADDR_BUS] ex_current_pc_addr, exmem_current_pc_addr;
   wire ex_eret_flag,ex_syscall_flag,ex_break_flag,ex_delayslot_flag,ex_overflow_flag;
   wire exmem_eret_flag,exmem_syscall_flag,exmem_break_flag,exmem_delayslot_flag,exmem_overflow_flag;
+  wire [`DATA_BUS] hilo_rp_hi, hilo_rp_lo, ex_hi, ex_lo, exmem_hi, exmem_lo;
+  wire ex_hilo_write_en, exmem_hilo_write_en;
 
   EX ex_stage(
     .funct                  (idex_funct),
@@ -229,6 +252,13 @@ module Core(
     .break_flag_in          (idex_break_flag),
     .delayslot_flag_in      (idex_delayslot_flag),
 
+    .overflow_judge_flag    (idex_over_judge_flag),
+
+    .hi_in                  (hilo_rp_hi),
+    .lo_in                  (hilo_rp_lo),
+    .mult_div_done          (multdiv_done),
+    .mult_div_result        (multdiv_result),
+
     .ex_load_flag           (ex_ex_load_flag),
 
     .mem_read_flag_out      (ex_mem_read_flag),
@@ -247,7 +277,12 @@ module Core(
     .syscall_flag_out       (ex_syscall_flag),
     .break_flag_out         (ex_break_flag),
     .delayslot_flag_out     (ex_delayslot_flag),
-    .overflow_flag          (ex_overflow_flag)
+    .overflow_flag          (ex_overflow_flag),
+
+    .hilo_write_en          (ex_hilo_write_en),
+    .hi_out                 (ex_hi),
+    .lo_out                 (ex_lo),
+    .stall_request          (ex_stall_request)
   );
 
   EXMEM exmem(
@@ -275,6 +310,10 @@ module Core(
     .delayslot_flag_in      (ex_delayslot_flag),
     .overflow_flag_in       (ex_overflow_flag),
 
+    .hilo_write_en_in       (ex_hilo_write_en),
+    .hi_in                  (ex_hi),
+    .lo_in                  (ex_lo),
+
     .mem_read_flag_out      (exmem_mem_read_flag),
     .mem_write_flag_out     (exmem_mem_write_flag),
     .mem_sign_ext_flag_out  (exmem_mem_sign_ext_flag),
@@ -291,7 +330,10 @@ module Core(
     .syscall_flag_out       (exmem_syscall_flag),
     .break_flag_out         (exmem_break_flag),
     .delayslot_flag_out     (exmem_delayslot_flag),
-    .overflow_flag_out      (exmem_overflow_flag)
+    .overflow_flag_out      (exmem_overflow_flag),
+    .hilo_write_en_out      (exmem_hilo_write_en),
+    .hi_out                 (exmem_hi),
+    .lo_out                 (exmem_lo)
   );
 
 
@@ -305,6 +347,8 @@ module Core(
   wire[`REG_ADDR_BUS] mem_reg_write_addr, memwb_reg_write_addr,mem_cp_write_addr,memwb_cp_write_addr;
   wire[`ADDR_BUS] mem_current_pc_addr, memwb_current_pc_addr;
   wire mem_eret_flag,mem_syscall_flag,mem_break_flag,mem_delayslot_flag,mem_overflow_flag,mem_address_read_error_flag,mem_address_write_error_flag;
+  wire [`DATA_BUS] mem_hi, mem_lo, memwb_hi, memwb_lo;
+  wire mem_hilo_write_en, memwb_hilo_write_en;
 
   MEM mem_stage(
     .mem_read_flag_in       (exmem_mem_read_flag),
@@ -325,6 +369,10 @@ module Core(
     .break_flag_in          (exmem_break_flag),
     .delayslot_flag_in      (exmem_delayslot_flag),
     .overflow_flag_in       (exmem_overflow_flag),
+
+    .hilo_write_en_in       (exmem_hilo_write_en),
+    .hi_in                  (exmem_hi),
+    .lo_in                  (exmem_lo),
 
     .ram_en                 (ram_en),
     .ram_write_en           (ram_write_en),
@@ -350,7 +398,10 @@ module Core(
     .delayslot_flag_out     (mem_delayslot_flag),
     .overflow_flag_out      (mem_overflow_flag),
     .address_read_error_flag  (mem_address_read_error_flag),
-    .address_write_error_flag (mem_address_write_error_flag)
+    .address_write_error_flag (mem_address_write_error_flag),
+    .hilo_write_en_out      (mem_hilo_write_en),
+    .hi_out                 (mem_hi),
+    .lo_out                 (mem_lo)
   );
 
   MEMWB memwb(
@@ -373,6 +424,10 @@ module Core(
     .cp_write_addr_in       (mem_cp_write_addr),
     .current_pc_addr_in     (mem_current_pc_addr),
 
+    .hilo_write_en_in       (mem_hilo_write_en),
+    .hi_in                  (mem_hi),
+    .lo_in                  (mem_lo),
+
     .ram_read_data_out      (memwb_ram_read_data),
 
     .mem_read_flag_out      (memwb_mem_read_flag),
@@ -384,7 +439,10 @@ module Core(
     .reg_write_addr_out     (memwb_reg_write_addr),
     .cp_write_en_out        (memwb_cp_write_en),
     .cp_write_addr_out      (memwb_cp_write_addr),
-    .current_pc_addr_out    (memwb_current_pc_addr)
+    .current_pc_addr_out    (memwb_current_pc_addr),
+    .hilo_write_en_out      (memwb_hilo_write_en),
+    .hi_out                 (memwb_hi),
+    .lo_out                 (memwb_lo)
   );
 
 
@@ -395,6 +453,10 @@ module Core(
 
   assign debug_reg_write_addr = wb_reg_write_addr;
   assign debug_reg_write_data = wb_result;
+
+  wire wb_hilo_write_en = memwb_hilo_write_en;
+  wire[`DATA_BUS] wb_hi = memwb_hi;
+  wire[`DATA_BUS] wb_lo = memwb_lo;
 
   WB wb_stage(
     .ram_read_data      (memwb_ram_read_data),
@@ -525,6 +587,7 @@ module Core(
   // pipeline control
   PipelineController pipeline_controller(
     .request_from_id  (id_stall_request),
+    .request_from_ex  (ex_stall_request),
     .stall_all        (stall),
     
     .cp0_epc          (cp_rp_epc),
@@ -541,10 +604,38 @@ module Core(
     .stall_ex         (stall_ex_conn),
     .stall_mem        (stall_mem_conn),
     .stall_wb         (stall_wb_conn),
-
     .flush            (exc_flush),
     .exc_pc           (exc_pc)
   );
+
+  wire [`DATA_BUS] hilo_hi, hilo_lo;
+
+  HILO  u_HILO(
+    .clk                     (clk),
+    .rst                     (rst),
+    .write_en                (wb_hilo_write_en),
+    .hi_i                    (wb_hi),
+    .lo_i                    (wb_lo),
+
+    .hi_o                    (hilo_hi),
+    .lo_o                    (hilo_lo)
+  );
+
+
+  HILOReadProxy  u_HILOReadProxy(
+    .hi_i                    (hilo_hi),
+    .lo_i                    (hilo_lo ),
+    .mem_hilo_write_en       (mem_hilo_write_en),
+    .mem_hi_i                (mem_hi ),
+    .mem_lo_i                (mem_lo),
+    .wb_hilo_write_en        (wb_hilo_write_en),
+    .wb_hi_i                 (wb_hi),
+    .wb_lo_i                 (wb_lo),
+
+    .hi_o                    (hilo_rp_hi),
+    .lo_o                    (hilo_rp_lo)
+  );
+
 
 
 endmodule // Core
