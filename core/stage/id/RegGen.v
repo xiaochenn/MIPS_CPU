@@ -25,7 +25,7 @@ module RegGen(
       `OP_ADDIU,`OP_ORI,
       `OP_SLTI, `OP_SLTIU,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU,`OP_LH: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_LH, `OP_LHU: begin
         reg_read_en_1 <= 1;
         reg_read_en_2 <= 0;
         reg_addr_1 <= rs;
@@ -70,7 +70,7 @@ module RegGen(
         reg_write_en <= 1;
         reg_write_addr <= 31;   // $ra (return address)
       end
-      `OP_LB, `OP_LBU, `OP_LW,`OP_ANDI,`OP_ORI,`OP_LH: begin
+      `OP_LB, `OP_LBU, `OP_LW, `OP_ANDI, `OP_ORI, `OP_LH, `OP_LHU: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end

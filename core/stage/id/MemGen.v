@@ -23,7 +23,7 @@ module MemGen(
   
   always @(*) begin
     case (op)
-      `OP_LB, `OP_LBU, `OP_LW,`OP_LH: mem_read_flag <= 1;
+      `OP_LB, `OP_LBU, `OP_LW, `OP_LH, `OP_LHU: mem_read_flag <= 1;
       default: mem_read_flag <= 0;
     endcase
   end
@@ -40,7 +40,7 @@ module MemGen(
     case (op)
       `OP_LB, `OP_LBU, `OP_SB: mem_sel <= 4'b0001;
       `OP_LW, `OP_SW: mem_sel <= 4'b1111;
-	  `OP_SH: mem_sel <= 4'b0011;
+	    `OP_SH, `OP_LHU, `OP_LH: mem_sel <= 4'b0011;
       default: mem_sel <= 4'b0000;
     endcase
   end

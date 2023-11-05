@@ -31,5 +31,6 @@
 `define OP_SW         6'b101011
 `define OP_LH         6'b100001
 `define OP_SH         6'b101001
+`define OP_LHU        6'b100101
 
 `endif  // TINYMIPS_OPCODE_V_
