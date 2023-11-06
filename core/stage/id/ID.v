@@ -66,7 +66,7 @@ module ID(
   wire[`SHAMT_BUS]      inst_shamt  = inst[`SEG_SHAMT];
   wire[`FUNCT_BUS]      inst_funct  = inst[`SEG_FUNCT];
   wire[`HALF_DATA_BUS]  inst_imm    = inst[`SEG_IMM];
-  wire inst_mfc0,inst_mtc0;
+  wire inst_mfc0,inst_mtc0,inst_al;
   // generate output signals
   assign shamt = inst_shamt;
   assign stall_request = load_related_1 || load_related_2;
@@ -77,6 +77,7 @@ module ID(
 
   assign overflow_judge_flag = (inst_funct == `FUNCT_ADD || inst_funct == `FUNCT_SUB || inst_op == `OP_ADDI);
 
+  assign inst_al = (inst_op == `OP_BSPECIAL) && (inst_rt == 5'b10001 || inst_rt == 5'b10000);
   // generate address of registers
   RegGen reg_gen(
     .op             (inst_op),
@@ -112,6 +113,7 @@ module ID(
     .imm        (inst_imm),
     .inst_mfc0  (inst_mfc0),
     .inst_mtc0  (inst_mtc0),
+    .inst_al    (inst_al),
     .reg_data_1 (reg_data_1),
     .reg_data_2 (reg_data_2),
     .cp_read_data (cp_read_data),

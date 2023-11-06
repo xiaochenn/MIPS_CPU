@@ -100,16 +100,20 @@ module RegGen(
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end
-      // `OP_BSPECIAL:begin
-      //   if (rt == 5'b10001) begin
-      //     reg_write_en <= 1;
-      //     reg_write_addr <= 31;
-      //   end
-      //   else if (rt == 5'b10000) begin
-      //     reg_write_en <= 1;
-      //     reg_write_addr <= 31;
-      //   end
-      // end
+      `OP_BSPECIAL:begin
+        if (rt == 5'b10001) begin
+          reg_write_en <= 1;
+          reg_write_addr <= 5'h1f;
+        end
+        else if (rt == 5'b10000) begin
+          reg_write_en <= 1;
+          reg_write_addr <= 5'h1f;
+        end
+        else begin
+          reg_write_en <= 0;
+          reg_write_addr <= 0;
+        end
+      end
       `OP_PRIVILEGE: begin
         if (rs == 5'b00000) begin
           reg_write_en <= 1;
