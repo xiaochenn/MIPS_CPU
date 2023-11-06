@@ -98,7 +98,7 @@ module RegGen(
         reg_write_en <= 1;
         reg_write_addr <= 31;   // $ra (return address)
       end
-      `OP_LB, `OP_LBU, `OP_LW, `OP_ANDI, `OP_ORI, `OP_LH, `OP_LH,`OP_XORIU: begin
+      `OP_LB, `OP_LBU, `OP_LW, `OP_ANDI, `OP_ORI, `OP_LH, `OP_LHU,`OP_XORI: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end
