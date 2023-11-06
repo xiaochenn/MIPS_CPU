@@ -30,8 +30,9 @@ module RegGen(
       `OP_BGTZ,`OP_BLEZ,
       // arithmetic & logic (immediate)
       `OP_ADDIU,`OP_ORI,`OP_ADDI,
+      `OP_SLTI, `OP_SLTIU,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU,`OP_LH: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_LH, `OP_LHU: begin
         reg_read_en_1 <= 1;
         reg_read_en_2 <= 0;
         reg_addr_1 <= rs;
@@ -42,7 +43,7 @@ module RegGen(
       // arithmetic & logic (immediate)
       `OP_ANDI,`OP_XORI,
       // memory accessing
-      `OP_SB, `OP_SW,
+      `OP_SB, `OP_SW, `OP_SH,
       // r-type
       `OP_SPECIAL,`OP_BSPECIAL: begin
         reg_read_en_1 <= 1;
@@ -84,7 +85,8 @@ module RegGen(
   always @(*) begin
     case (op)
       // immediate
-      `OP_ADDIU, `OP_LUI,`OP_ADDI: begin
+      `OP_ADDIU, `OP_LUI,`OP_ADDI,
+      `OP_SLTI, `OP_SLTIU: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end
@@ -96,7 +98,7 @@ module RegGen(
         reg_write_en <= 1;
         reg_write_addr <= 31;   // $ra (return address)
       end
-      `OP_LB, `OP_LBU, `OP_LW,`OP_ANDI,`OP_ORI,`OP_LH,`OP_XORI: begin
+      `OP_LB, `OP_LBU, `OP_LW, `OP_ANDI, `OP_ORI, `OP_LH, `OP_LH,`OP_XORIU: begin
         reg_write_en <= 1;
         reg_write_addr <= rt;
       end

@@ -19,6 +19,8 @@
 `define OP_ADDIU      6'b001001
 `define OP_ADDI       6'b001000
 
+`define OP_SLTI       6'b001010
+`define OP_SLTIU      6'b001011
 
 // immediate
 `define OP_LUI        6'b001111
@@ -35,6 +37,8 @@
 `define OP_LH         6'b100001
 
 // privilege
-`define OP_PRIVILEGE       6'b010000
+`define OP_PRIVILEGE  6'b010000
+`define OP_SH         6'b101001
+`define OP_LHU        6'b100101
 
 `endif  // TINYMIPS_OPCODE_V_

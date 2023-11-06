@@ -109,6 +109,13 @@ module MEM(
           default: ram_write_sel <= 4'b0000;
         endcase
       end
+      else if (mem_sel_in == 4'b0011) begin   //half word
+        case (address[1:0])
+          2'b00: ram_write_sel <= 4'b0011;
+          2'b10: ram_write_sel <= 4'b1100; 
+          default: ram_write_sel <= 4'b0000;
+        endcase
+      end
       else if (mem_sel_in == 4'b1111) begin   // word
         case (address[1:0])
           2'b00: ram_write_sel <= 4'b1111;
@@ -133,6 +140,13 @@ module MEM(
           2'b01: ram_write_data <= mem_write_data << 8;
           2'b10: ram_write_data <= mem_write_data << 16;
           2'b11: ram_write_data <= mem_write_data << 24;
+        endcase
+      end
+      else if (mem_sel_in == 4'b0011) begin
+        case (address[1:0])
+          2'b00: ram_write_data <= mem_write_data;
+          2'b10: ram_write_data <= mem_write_data << 16;
+          default: ram_write_data <= 0;
         endcase
       end
       else if (mem_sel_in == 4'b1111) begin

@@ -16,14 +16,14 @@ module MemGen(
   // generate control signal of memory accessing
   always @(*) begin
     case (op)
-      `OP_SB, `OP_SW: mem_write_flag <= 1;
+      `OP_SB, `OP_SW, `OP_SH: mem_write_flag <= 1;
       default: mem_write_flag <= 0;
     endcase
   end
   
   always @(*) begin
     case (op)
-      `OP_LB, `OP_LBU, `OP_LW,`OP_LH: mem_read_flag <= 1;
+      `OP_LB, `OP_LBU, `OP_LW, `OP_LH, `OP_LHU: mem_read_flag <= 1;
       default: mem_read_flag <= 0;
     endcase
   end
@@ -40,6 +40,7 @@ module MemGen(
     case (op)
       `OP_LB, `OP_LBU, `OP_SB: mem_sel <= 4'b0001;
       `OP_LW, `OP_SW: mem_sel <= 4'b1111;
+	    `OP_SH, `OP_LHU, `OP_LH: mem_sel <= 4'b0011;
       default: mem_sel <= 4'b0000;
     endcase
   end
@@ -47,7 +48,7 @@ module MemGen(
   // generate data to be written to memory
   always @(*) begin
     case (op)
-      `OP_SB, `OP_SW: mem_write_data <= reg_data_2;
+      `OP_SB, `OP_SW, `OP_SH: mem_write_data <= reg_data_2;
       default: mem_write_data <= 0;
     endcase
   end

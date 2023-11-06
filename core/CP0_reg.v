@@ -29,6 +29,11 @@ module CP0_reg(
     input [`ADDR_BUS] current_pc_addr_i,
     output [`ADDR_BUS] epc_o,
     output reg[`DATA_BUS] read_data_o,
+    output reg[`DATA_BUS] count_o,
+    output reg[`DATA_BUS] compare_o,
+    output reg[`DATA_BUS] status_o,
+    output reg[`DATA_BUS] cause_o,
+    output reg[`DATA_BUS] epc_o,
     //output reg[`DATA_BUS] config_o,
     //output reg[`DATA_BUS] prid_o,
     output reg            timer_int_o
