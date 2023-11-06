@@ -17,7 +17,7 @@ module FunctGen(
       `OP_SLTI: funct <= `FUNCT_SLT;  // 有符号比较
       `OP_SLTIU: funct <= `FUNCT_SLTU; // 无符号比较
       `OP_LUI: funct <= `FUNCT_OR;
-      `OP_LB, `OP_LBU, `OP_LW,
+      `OP_LB, `OP_LBU, `OP_LW, `OP_LHU,
       `OP_SB, `OP_SW, `OP_ADDIU,`OP_LH, `OP_SH: funct <= `FUNCT_ADDU;
       `OP_JAL: funct <= `FUNCT_OR;
       `OP_ANDI:funct <= `FUNCT_AND;
