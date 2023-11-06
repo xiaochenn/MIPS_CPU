@@ -181,6 +181,17 @@ module MEM(
             address_write_error_flag <= 0;
           end
         end
+        4'b0011:
+        begin
+          if (address[0] != 0) 
+          begin      // half word
+            address_write_error_flag <= 1;
+          end
+          else 
+          begin
+            address_write_error_flag <= 0;
+          end
+        end
         default: 
         begin
           address_write_error_flag <= 0;
@@ -203,6 +214,17 @@ module MEM(
         begin
           if (address[1:0] != 2'b00) 
           begin      // word
+            address_read_error_flag <= 1;
+          end
+          else 
+          begin
+            address_read_error_flag <= 0;
+          end
+        end
+        4'b0011:
+        begin
+          if (address[0] != 0) 
+          begin      // half word
             address_read_error_flag <= 1;
           end
           else 

@@ -75,7 +75,7 @@ module ID(
   assign inst_mtc0 = (inst[31:21] == 11'b01000000100 && inst[10:0] == 11'b00000000000); //mtc0指令
   assign delayslot_flag_out = delayslot_flag_in;
 
-  assign overflow_judge_flag = (inst_funct == `FUNCT_ADD || inst_funct == `FUNCT_SUB || inst_op == `OP_ADDI);
+  assign overflow_judge_flag = ((inst_op == `OP_SPECIAL && (inst_funct == `FUNCT_ADD || inst_funct == `FUNCT_SUB)) || inst_op == `OP_ADDI);
 
   assign inst_al = (inst_op == `OP_BSPECIAL) && (inst_rt == 5'b10001 || inst_rt == 5'b10000);
   // generate address of registers

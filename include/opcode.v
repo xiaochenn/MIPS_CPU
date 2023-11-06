@@ -8,6 +8,7 @@
 `define OP_JAL        6'b000011
 `define OP_BGTZ       6'b000111
 `define OP_BLTZ       6'b000001
+`define OP_J          6'b000010
 
 // branch
 `define OP_BEQ        6'b000100
@@ -35,10 +36,11 @@
 `define OP_SB         6'b101000
 `define OP_SW         6'b101011
 `define OP_LH         6'b100001
+`define OP_SH         6'b101001
+`define OP_LHU        6'b100101
 
 // privilege
 `define OP_PRIVILEGE  6'b010000
-`define OP_SH         6'b101001
-`define OP_LHU        6'b100101
+
 
 `endif  // TINYMIPS_OPCODE_V_

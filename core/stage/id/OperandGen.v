@@ -77,6 +77,7 @@ module OperandGen(
       end
       // arithmetic & logic (immediate)
       `OP_ADDIU,`OP_ADDI,
+      `OP_SLTI, `OP_SLTIU,
       // memory accessing
       `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW,`OP_LH, `OP_SH, `OP_LHU: begin
         operand_2 <= sign_ext_imm;

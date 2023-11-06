@@ -22,6 +22,11 @@ module BranchGen(
 
   always @(*) begin
     case (op)
+      `OP_J: begin
+        branch_flag <= 1;
+        branch_addr <= {addr_plus_4[31:28], jump_addr, 2'b00};
+        next_inst_delayslot_flag <= 1;
+      end
       `OP_JAL: begin
         branch_flag <= 1;
         branch_addr <= {addr_plus_4[31:28], jump_addr, 2'b00};
