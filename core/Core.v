@@ -96,6 +96,7 @@ module Core(
   wire id_delayslot_flag_in,id_delayslot_flag_out,id_next_inst_delayslot_flag,idex_delayslot_flag;
   wire id_eret_flag,id_syscall_flag,id_break_flag,idex_eret_flag,idex_syscall_flag,idex_break_flag;
   wire id_over_judge_flag,idex_over_judge_flag;
+  wire id_reserved_inst_flag,idex_reserved_inst_flag;
 
   ID id_stage(
     .addr               (ifid_addr),
@@ -147,7 +148,8 @@ module Core(
     .syscall_flag       (id_syscall_flag),
     .break_flag         (id_break_flag),
     .next_inst_delayslot_flag (id_next_inst_delayslot_flag),
-    .delayslot_flag_out      (id_delayslot_flag_out)
+    .delayslot_flag_out      (id_delayslot_flag_out),
+    .reserved_inst_flag  (id_reserved_inst_flag)
   );
 
   IDEX idex(
@@ -177,6 +179,7 @@ module Core(
     .break_flag_in          (id_break_flag),
     .next_inst_delayslot_flag_in (id_next_inst_delayslot_flag),
     .delayslot_flag_in     (id_delayslot_flag_out),
+    .reserved_inst_flag_in (id_reserved_inst_flag),
 
     .funct_out              (idex_funct),
     .shamt_out              (idex_shamt),
@@ -197,7 +200,8 @@ module Core(
     .syscall_flag_out       (idex_syscall_flag),
     .break_flag_out         (idex_break_flag),
     .next_inst_delayslot_flag_out   (id_delayslot_flag_in),
-    .delayslot_flag_out     (idex_delayslot_flag)
+    .delayslot_flag_out     (idex_delayslot_flag),
+    .reserved_inst_flag_out (idex_reserved_inst_flag)
   );
 
 
@@ -231,6 +235,7 @@ module Core(
   wire exmem_eret_flag,exmem_syscall_flag,exmem_break_flag,exmem_delayslot_flag,exmem_overflow_flag;
   wire [`DATA_BUS] hilo_rp_hi, hilo_rp_lo, ex_hi, ex_lo, exmem_hi, exmem_lo;
   wire ex_hilo_write_en, exmem_hilo_write_en;
+  wire ex_reserved_inst_flag,exmem_reserved_inst_flag;
 
   EX ex_stage(
     .funct                  (idex_funct),
@@ -251,6 +256,7 @@ module Core(
     .syscall_flag_in        (idex_syscall_flag),
     .break_flag_in          (idex_break_flag),
     .delayslot_flag_in      (idex_delayslot_flag),
+    .reserved_inst_flag_in  (idex_reserved_inst_flag),
 
     .overflow_judge_flag    (idex_over_judge_flag),
 
@@ -278,6 +284,7 @@ module Core(
     .break_flag_out         (ex_break_flag),
     .delayslot_flag_out     (ex_delayslot_flag),
     .overflow_flag          (ex_overflow_flag),
+    .reserved_inst_flag_out (ex_reserved_inst_flag),
 
     .hilo_write_en          (ex_hilo_write_en),
     .hi_out                 (ex_hi),
@@ -309,6 +316,7 @@ module Core(
     .break_flag_in          (ex_break_flag),
     .delayslot_flag_in      (ex_delayslot_flag),
     .overflow_flag_in       (ex_overflow_flag),
+    .reserved_inst_flag_in  (ex_reserved_inst_flag),
 
     .hilo_write_en_in       (ex_hilo_write_en),
     .hi_in                  (ex_hi),
@@ -330,7 +338,9 @@ module Core(
     .syscall_flag_out       (exmem_syscall_flag),
     .break_flag_out         (exmem_break_flag),
     .delayslot_flag_out     (exmem_delayslot_flag),
+    .reserved_inst_flag_out (exmem_reserved_inst_flag),
     .overflow_flag_out      (exmem_overflow_flag),
+
     .hilo_write_en_out      (exmem_hilo_write_en),
     .hi_out                 (exmem_hi),
     .lo_out                 (exmem_lo)
@@ -349,6 +359,7 @@ module Core(
   wire mem_eret_flag,mem_syscall_flag,mem_break_flag,mem_delayslot_flag,mem_overflow_flag,mem_address_read_error_flag,mem_address_write_error_flag;
   wire [`DATA_BUS] mem_hi, mem_lo, memwb_hi, memwb_lo;
   wire mem_hilo_write_en, memwb_hilo_write_en;
+  wire mem_reserved_inst_flag;
 
   MEM mem_stage(
     .mem_read_flag_in       (exmem_mem_read_flag),
@@ -369,6 +380,7 @@ module Core(
     .break_flag_in          (exmem_break_flag),
     .delayslot_flag_in      (exmem_delayslot_flag),
     .overflow_flag_in       (exmem_overflow_flag),
+    .reserved_inst_flag_in  (exmem_reserved_inst_flag),
 
     .hilo_write_en_in       (exmem_hilo_write_en),
     .hi_in                  (exmem_hi),
@@ -391,6 +403,7 @@ module Core(
     .cp_write_en_out        (mem_cp_write_en),
     .cp_write_addr_out      (mem_cp_write_addr),
     .current_pc_addr_out    (mem_current_pc_addr),
+    .reserved_inst_flag_out (mem_reserved_inst_flag),
 
     .eret_flag_out          (mem_eret_flag),
     .syscall_flag_out       (mem_syscall_flag),
@@ -525,6 +538,7 @@ module Core(
     .break_flag_i               (mem_break_flag),
     .delayslot_flag_i           (mem_delayslot_flag),
     .overflow_flag_i            (mem_overflow_flag),
+    .reserved_inst_flag_i       (mem_reserved_inst_flag),
     .address_read_error_flag_i  (mem_address_read_error_flag),
     .address_write_error_flag_i (mem_address_write_error_flag),
     .current_pc_addr_i          (mem_current_pc_addr),
@@ -597,6 +611,7 @@ module Core(
     .syscall_flag     (mem_syscall_flag),
     .break_flag       (mem_break_flag),
     .overflow_flag    (mem_overflow_flag),
+    .reserved_inst_flag       (mem_reserved_inst_flag),
     .address_read_error_flag  (mem_address_read_error_flag),
     .address_write_error_flag (mem_address_write_error_flag),
 

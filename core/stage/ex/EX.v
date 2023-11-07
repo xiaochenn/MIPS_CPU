@@ -24,6 +24,7 @@ module EX(
   input                       break_flag_in,
   input                       delayslot_flag_in,
   input                       overflow_judge_flag,
+  input                       reserved_inst_flag_in,
   // to ID stage (solve data hazards)
   output                      ex_load_flag,
   // to MEM stage
@@ -44,6 +45,7 @@ module EX(
   output                      break_flag_out,
   output                      overflow_flag,
   output                      delayslot_flag_out,
+  output                      reserved_inst_flag_out,
   //to HILO
   input       [`DATA_BUS]     hi_in,
   input       [`DATA_BUS]     lo_in,
@@ -78,6 +80,7 @@ wire multdiv_inst = (funct == `FUNCT_MULT || funct == `FUNCT_MULTU
   assign syscall_flag_out = syscall_flag_in;
   assign break_flag_out = break_flag_in;
   assign delayslot_flag_out = delayslot_flag_in;
+  assign reserved_inst_flag_out = reserved_inst_flag_in; 
 
   // calculate the complement of operand_2
   wire[`DATA_BUS] operand_2_mux =

@@ -16,7 +16,8 @@ module OperandGen(
   input       [`DATA_BUS]       reg_data_2,
   input       [`DATA_BUS]       cp_read_data,
   output  reg [`DATA_BUS]       operand_1,
-  output  reg [`DATA_BUS]       operand_2
+  output  reg [`DATA_BUS]       operand_2,
+  output  reg                   reserved_inst
 );
 
   // calculate link address
@@ -32,18 +33,22 @@ module OperandGen(
     case (op)
       // immediate
       `OP_ADDIU, `OP_LUI, `OP_ANDI,`OP_XORI,`OP_ADDI,
-      `OP_SLTI, `OP_SLTIU,
+      `OP_SLTI, `OP_SLTIU,`OP_ORI,
       // memory accessing
-      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW, `OP_ANDI,`OP_ORI,`OP_LH, `OP_SH, `OP_LHU: begin
+      `OP_LB, `OP_LW, `OP_LBU, `OP_SB, `OP_SW,`OP_LH, `OP_SH, `OP_LHU: begin
         operand_1 <= reg_data_1;
+        reserved_inst <= 1;
       end
       `OP_SPECIAL: begin
         operand_1 <= funct == `FUNCT_JALR ? link_addr : reg_data_1;
+        reserved_inst <= 0;
       end
       `OP_JAL: begin
         operand_1 <= link_addr;
+        reserved_inst <= 0;
       end
       `OP_BSPECIAL: begin
+        reserved_inst <= 0;
         if (inst_al)
         begin
           operand_1 <= link_addr;
@@ -65,6 +70,7 @@ module OperandGen(
       end
       default: begin
         operand_1 <= 0;
+        reserved_inst <= 0;
       end
     endcase
   end

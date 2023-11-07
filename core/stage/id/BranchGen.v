@@ -13,7 +13,8 @@ module BranchGen(
   input       [`DATA_BUS]     reg_data_2,
   output  reg                 branch_flag,
   output  reg [`ADDR_BUS]     branch_addr,
-  output  reg                 next_inst_delayslot_flag
+  output  reg                 next_inst_delayslot_flag,
+  output  reg                 reserved_inst
 );
 
   wire[`ADDR_BUS] addr_plus_4 = addr + 4;
@@ -26,14 +27,17 @@ module BranchGen(
         branch_flag <= 1;
         branch_addr <= {addr_plus_4[31:28], jump_addr, 2'b00};
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
       end
       `OP_JAL: begin
         branch_flag <= 1;
         branch_addr <= {addr_plus_4[31:28], jump_addr, 2'b00};
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
       end
       `OP_BGTZ: begin
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
         if ($signed(reg_data_1) > 0) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -45,6 +49,7 @@ module BranchGen(
       end
       `OP_BLEZ: begin
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
         if ($signed(reg_data_1) <= 0) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -57,6 +62,7 @@ module BranchGen(
       `OP_BSPECIAL: begin
         if (inst[20:16] == 5'b00001) begin   //BGEZ
           next_inst_delayslot_flag <= 1;
+          reserved_inst <= 1;
           if ($signed(reg_data_1) >= 0) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -68,6 +74,7 @@ module BranchGen(
         end
         else if(inst[20:16]==5'b00000) begin       //BLTZ
           next_inst_delayslot_flag <= 1;
+          reserved_inst <= 1;
           if($signed(reg_data_1) < 0) begin
             branch_flag <= 1;
             branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -79,6 +86,7 @@ module BranchGen(
         end
         else if(inst[20:16]==5'b10001) begin   //BGEZAL
            next_inst_delayslot_flag <= 1;
+           reserved_inst <= 1;
            if ($signed(reg_data_1) >= 0) begin
             branch_flag <= 1;
             branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -90,6 +98,7 @@ module BranchGen(
         end
         else if(inst[20:16]==5'b10000) begin  //BLTZAL
           next_inst_delayslot_flag <= 1;
+          reserved_inst <= 1;
           if ($signed(reg_data_1) < 0) begin
             branch_flag <= 1;
             branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -102,11 +111,13 @@ module BranchGen(
       end 
       `OP_SPECIAL: begin
         if (funct == `FUNCT_JALR) begin
+          reserved_inst <= 1;
           branch_flag <= 1;
           branch_addr <= reg_data_1;
           next_inst_delayslot_flag <= 1;
         end
         else if (funct == `FUNCT_JR) begin
+           reserved_inst <= 1;
            branch_flag <= 1;
            branch_addr <= reg_data_1;
            next_inst_delayslot_flag <= 1;
@@ -115,10 +126,12 @@ module BranchGen(
           branch_flag <= 0;
           branch_addr <= 0;
           next_inst_delayslot_flag <= 0;
+          reserved_inst <= 0;
         end
       end
       `OP_BEQ: begin
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
         if (reg_data_1 == reg_data_2) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -130,6 +143,7 @@ module BranchGen(
       end
       `OP_BNE: begin
         next_inst_delayslot_flag <= 1;
+        reserved_inst <= 1;
         if (reg_data_1 != reg_data_2) begin
           branch_flag <= 1;
           branch_addr <= addr_plus_4 + sign_ext_imm_sll2;
@@ -143,6 +157,7 @@ module BranchGen(
         branch_flag <= 0;
         branch_addr <= 0;
         next_inst_delayslot_flag <= 0;
+        reserved_inst <= 0;
       end
     endcase
   end

@@ -26,6 +26,7 @@ module EXMEM(
   input                   break_flag_in,
   input                   overflow_flag_in,
   input                   delayslot_flag_in,
+  input                   reserved_inst_flag_in,
   // HI & LO control
   input                   hilo_write_en_in,
   input   [`DATA_BUS]     hi_in,
@@ -49,6 +50,7 @@ module EXMEM(
   output                  break_flag_out,
   output                  overflow_flag_out,
   output                  delayslot_flag_out,
+  output                  reserved_inst_flag_out,
   // HI & LO control
   output                  hilo_write_en_out,
   output  [`DATA_BUS]     hi_out,
@@ -167,6 +169,12 @@ module EXMEM(
     clk, rst,flush,
     stall_current_stage, stall_next_stage,
     lo_in, lo_out
+  );
+
+  PipelineDeliver #(1) ff_reserved_inst_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    reserved_inst_flag_in, reserved_inst_flag_out
   );
 
 endmodule // EXMEM

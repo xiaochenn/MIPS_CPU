@@ -24,6 +24,7 @@ module CP0_reg(
     input wire break_flag_i,
     input wire overflow_flag_i,
     input wire delayslot_flag_i,
+    input wire reserved_inst_flag_i,
     input wire address_read_error_flag_i,
     input wire address_write_error_flag_i,
     input [`ADDR_BUS] current_pc_addr_i,
@@ -124,7 +125,7 @@ module CP0_reg(
         begin
             reg_status <= 32'h0040ff00;
         end
-        else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) 
+        else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i || reserved_inst_flag_i) 
         begin
             reg_status[1] <= 1;
         end
@@ -152,7 +153,7 @@ module CP0_reg(
             reg_cause <= 32'h0;
             reg_cause[15:10] = int_i;
         end
-        else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i) 
+        else if (break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i || reserved_inst_flag_i) 
         begin
             if (reg_status[1] != 1)
                 reg_cause[31] <= delayslot_flag_i;
@@ -166,6 +167,8 @@ module CP0_reg(
                 reg_cause[6:2] <= `CP0_EXCCODE_ADES;
             else if (address_read_error_flag_i)
                 reg_cause[6:2] <= `CP0_EXCCODE_ADEL;
+            else if (reserved_inst_flag_i)
+                reg_cause[6:2] <= `CP0_EXCCODE_RI;
         end
         else if (write_en_i && write_addr_i == `CP0_REG_CAUSE) 
         begin
@@ -184,7 +187,7 @@ module CP0_reg(
         begin
             reg_epc <= 32'h0;
         end
-        else if ((break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i)) 
+        else if ((break_flag_i || syscall_flag_i || overflow_flag_i || address_read_error_flag_i || address_write_error_flag_i || reserved_inst_flag_i)) 
         begin
             reg_epc <= exc_epc;
         end

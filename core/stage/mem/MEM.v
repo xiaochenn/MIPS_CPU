@@ -15,6 +15,7 @@ module MEM(
   input                       break_flag_in,
   input                       overflow_flag_in,
   input                       delayslot_flag_in,
+  input                       reserved_inst_flag_in,
   // from EX stage
   input       [`DATA_BUS]     result_in,
   input                       reg_write_en_in,
@@ -49,6 +50,7 @@ module MEM(
   output                      break_flag_out,
   output                      overflow_flag_out,
   output                      delayslot_flag_out,
+  output                      reserved_inst_flag_out,
   output     reg              address_read_error_flag,
   output     reg              address_write_error_flag,
   // HI & LO control
@@ -79,6 +81,7 @@ module MEM(
   assign break_flag_out = break_flag_in;
   assign overflow_flag_out = overflow_flag_in;
   assign delayslot_flag_out = delayslot_flag_in;
+  assign reserved_inst_flag_out = reserved_inst_flag_in;
 
   wire[`ADDR_BUS] address = result_in;
 

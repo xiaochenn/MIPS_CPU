@@ -16,6 +16,7 @@ module PipelineController(
   input overflow_flag,
   input address_read_error_flag,
   input address_write_error_flag,
+  input reserved_inst_flag,
   // stall signals for each mid-stage
   output  stall_pc,
   output  stall_if,
@@ -34,7 +35,7 @@ module PipelineController(
   assign {stall_wb, stall_mem, stall_ex,
           stall_id, stall_if, stall_pc} = stall;
 
-  assign flush = stall_all? 0: (eret_flag || syscall_flag || break_flag || overflow_flag || address_read_error_flag || address_write_error_flag) ? 1 : 0;
+  assign flush = stall_all? 0: (eret_flag || syscall_flag || break_flag || overflow_flag || address_read_error_flag || address_write_error_flag || reserved_inst_flag ) ? 1 : 0;
 
 
   always @(*) begin
@@ -57,7 +58,7 @@ module PipelineController(
     begin
       exc_pc <= cp0_epc;
     end
-    else if (syscall_flag || break_flag || overflow_flag || address_read_error_flag || address_write_error_flag) 
+    else if (syscall_flag || break_flag || overflow_flag || address_read_error_flag || address_write_error_flag || reserved_inst_flag) 
     begin
       exc_pc <= 32'hbfc00380;
     end

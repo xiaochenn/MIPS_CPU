@@ -55,7 +55,8 @@ module ID(
   output                  break_flag,
   output                  next_inst_delayslot_flag,
   output                  overflow_judge_flag,
-  output                  delayslot_flag_out
+  output                  delayslot_flag_out,
+  output                  reserved_inst_flag
 );
 
   // extract information from instruction
@@ -67,6 +68,12 @@ module ID(
   wire[`FUNCT_BUS]      inst_funct  = inst[`SEG_FUNCT];
   wire[`HALF_DATA_BUS]  inst_imm    = inst[`SEG_IMM];
   wire inst_mfc0,inst_mtc0,inst_al;
+  wire reserved_inst[1:0];
+  // generate reserved_inst_flag
+  assign reserved_inst_flag = !(  (reserved_inst[0] == 1 || reserved_inst[1] == 1)
+                               || (eret_flag || syscall_flag || break_flag || inst_mfc0 || inst_mtc0)
+                               || (inst_op == `OP_SPECIAL));
+
   // generate output signals
   assign shamt = inst_shamt;
   assign stall_request = load_related_1 || load_related_2;
@@ -118,7 +125,8 @@ module ID(
     .reg_data_2 (reg_data_2),
     .cp_read_data (cp_read_data),
     .operand_1  (operand_1),
-    .operand_2  (operand_2)
+    .operand_2  (operand_2),
+    .reserved_inst (reserved_inst[0])
   );
 
   // generate branch address
@@ -131,7 +139,8 @@ module ID(
     .reg_data_2   (reg_data_2),
     .branch_flag  (branch_flag),
     .branch_addr  (branch_addr),
-    .next_inst_delayslot_flag (next_inst_delayslot_flag)
+    .next_inst_delayslot_flag (next_inst_delayslot_flag),
+    .reserved_inst (reserved_inst[1])
   );
 
   // generate memory accessing signals

@@ -29,6 +29,7 @@ module IDEX(
   input                   break_flag_in,
   input                   next_inst_delayslot_flag_in,
   input                   delayslot_flag_in,
+  input                   reserved_inst_flag_in,
   // output to EX stage
   output  [`FUNCT_BUS]    funct_out,
   output  [`SHAMT_BUS]    shamt_out,
@@ -49,7 +50,8 @@ module IDEX(
   output                  syscall_flag_out,
   output                  break_flag_out,
   output                  next_inst_delayslot_flag_out,
-  output                  delayslot_flag_out
+  output                  delayslot_flag_out,
+  output                  reserved_inst_flag_out
 );
 
   PipelineDeliver #(`FUNCT_BUS_WIDTH) ff_funct(
@@ -170,6 +172,12 @@ module IDEX(
     clk, rst,flush,
     stall_current_stage, stall_next_stage,
     overflow_judge_flag_in, overflow_judge_flag_out
+  );
+
+  PipelineDeliver #(1) ff_reserved_inst_flag(
+    clk, rst,flush,
+    stall_current_stage, stall_next_stage,
+    reserved_inst_flag_in, reserved_inst_flag_out
   );
 
 endmodule // IDEX
