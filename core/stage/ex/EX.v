@@ -126,26 +126,6 @@ wire multdiv_inst = (funct == `FUNCT_MULT || funct == `FUNCT_MULTU
     endcase
   end
  
-  // HI & LO control
-  always @(*) begin
-    case (funct)
-    `FUNCT_MTHI: begin
-      hilo_write_en <= 1;
-      hi_out <= operand_1;
-      lo_out <= lo_in;
-    end
-    `FUNCT_MTLO: begin
-      hilo_write_en <= 1;
-      hi_out <= hi_in;
-      lo_out <= operand_1;
-    end
-    default: begin
-      hilo_write_en <= 0;
-      hi_out <= hi_in;
-      lo_out <= lo_in;
-    end
-    endcase
-  end
 // HI & LO control
   always @(*) begin
     case (funct)
@@ -155,8 +135,24 @@ wire multdiv_inst = (funct == `FUNCT_MULT || funct == `FUNCT_MULTU
         hi_out <= mult_div_result[63:32];
         lo_out <= mult_div_result[31: 0];
       end
+      `FUNCT_MTHI: begin
+        hilo_write_en <= 1;
+        hi_out <= operand_1;
+        lo_out <= lo_in;
+      end
+      `FUNCT_MTLO: begin
+        hilo_write_en <= 1;
+        hi_out <= hi_in;
+        lo_out <= operand_1;
+      end
+      default: begin
+      hilo_write_en <= 0;
+      hi_out <= hi_in;
+      lo_out <= lo_in;
+    end
     endcase
   end
+  
   always @(*) begin
     case (funct)
       `FUNCT_MULT, `FUNCT_MULTU,
